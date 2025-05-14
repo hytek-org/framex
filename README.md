@@ -1,1 +1,2 @@
+# FrameX
 FrameX is a modern, full-stack starter kit built for rapid, scalable web development. Combining the power of Laravel with a React + TypeScript frontend, FrameX gives developers a rock-solid foundation to launch blogs, dashboards, communities, and SaaS platforms with ease.
