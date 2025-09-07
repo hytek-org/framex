@@ -23,28 +23,14 @@ class SocialAuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $socialUser = Socialite::driver('google')->stateless()->user();
 
-            // Check if the user already exists in the database
-            $user = User::where('email', $googleUser->getEmail())->first();
+            $user = $this->findOrCreateUser($socialUser, 'google');
 
-            if ($user) {
-                // User exists, log them in
-                Auth::login($user);
-            } else {
-                // User does not exist, create and log them in
-                $user = User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'email_verified_at' => now(),
-                    'password' => bcrypt(Str::random(24)), // A random password
-                    'avatar' => $googleUser->getAvatar(),
-                ]);
-
-                Auth::login($user);
-            }
+            Auth::login($user);
 
             return redirect()->intended('/home');
+
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['message' => 'Unable to login, try again.']);
         }
@@ -52,28 +38,79 @@ class SocialAuthController extends Controller
     public function handleGithubCallback()
     {
         try {
-            $githubUser = Socialite::driver('github')->stateless()->user();
+            $socialUser = Socialite::driver('github')->stateless()->user();
 
-            // Check if user exists
-            $user = User::where('email', $githubUser->getEmail())->first();
+            $user = $this->findOrCreateUser($socialUser, 'github');
 
-            if ($user) {
-                Auth::login($user);
-            } else {
-                $user = User::create([
-                    'name' => $githubUser->getName() ?? $githubUser->getNickname(),
-                    'email' => $githubUser->getEmail(),
-                    'email_verified_at' => now(),
-                    'password' => bcrypt(Str::random(24)),
-                    'avatar' => $githubUser->getAvatar(),
-                ]);
-
-                Auth::login($user);
-            }
+            Auth::login($user);
 
             return redirect()->intended('/home');
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['message' => 'Unable to login with GitHub, try again.']);
         }
+    }
+
+
+    /**
+     * Centralized logic to find or create a local User from a Socialite user object.
+     *
+     * @param  \Laravel\Socialite\Contracts\User  $socialUser
+     * @param  string  $provider (e.g. 'google', 'github')
+     * @return \App\Models\User
+     */
+    protected function findOrCreateUser($socialUser, string $provider)
+    {
+        // 1) Try to find by email (preferred)
+        $email = $socialUser->getEmail();
+
+        if ($email) {
+            $existing = User::where('email', $email)->first();
+            if ($existing) {
+                // Make sure provider info is stored (optional)
+                $existing->update([
+                    'provider' => $existing->provider ?? $provider,
+                    'provider_id' => $existing->provider_id ?? $socialUser->getId(),
+                    'avatar' => $existing->avatar ?? $socialUser->getAvatar(),
+                ]);
+                return $existing;
+            }
+        }
+
+        // 2) Try to find by provider + provider_id (if user previously signed up via provider)
+        $userByProvider = User::where('provider', $provider)
+            ->where('provider_id', $socialUser->getId())
+            ->first();
+        if ($userByProvider) {
+            return $userByProvider;
+        }
+
+        // 3) Email missing or not found — create a new user.
+        // If email is missing from provider (common with GitHub when email is private),
+        // create a synthetic unique email to satisfy DB constraints:
+        if (!$email) {
+            $host = parse_url(config('app.url'), PHP_URL_HOST) ?: 'local';
+            $email = $provider . '_' . $socialUser->getId() . '@' . $host;
+            // do not mark email verified in this case
+            $emailVerifiedAt = null;
+        } else {
+            $emailVerifiedAt = now();
+        }
+
+
+        // Build a sensible name fallback
+        $name = $socialUser->getName() ?: $socialUser->getNickname() ?: 'User ' . $socialUser->getId();
+
+        // Create user (ensure User model has fillable for these fields)
+        $newUser = User::create([
+            'name' => $name,
+            'email' => $email,
+            'email_verified_at' => $emailVerifiedAt,
+            'password' => bcrypt(Str::random(24)), // random password — social login used
+            'avatar' => $socialUser->getAvatar(),
+            'provider' => $provider,
+            'provider_id' => $socialUser->getId(),
+        ]);
+
+        return $newUser;
     }
 }
