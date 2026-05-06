@@ -31,8 +31,14 @@ class TeamInvitationController extends Controller
             'expires_at' => now()->addDays(3),
         ]);
 
-        Notification::route('mail', $invitation->email)
-            ->notify(new TeamInvitationNotification($invitation));
+        $user = \App\Models\User::where('email', $invitation->email)->first();
+
+        if ($user) {
+            $user->notify(new TeamInvitationNotification($invitation));
+        } else {
+            Notification::route('mail', $invitation->email)
+                ->notify(new TeamInvitationNotification($invitation));
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation sent.')]);
 
@@ -75,6 +81,9 @@ class TeamInvitationController extends Controller
             $invitation->update(['accepted_at' => now()]);
 
             $user->switchTeam($team);
+
+            // Notify the inviter
+            $invitation->inviter->notify(new \App\Notifications\Teams\TeamInvitationAccepted($team, $user));
         });
 
         return to_route('dashboard');

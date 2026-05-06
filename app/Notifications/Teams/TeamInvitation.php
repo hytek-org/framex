@@ -27,7 +27,7 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -54,10 +54,19 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $team = $this->invitation->team;
+        $inviter = $this->invitation->inviter;
+
         return [
+            'title' => __('New Team Invitation'),
+            'body' => __(':inviterName invited you to join :teamName.', [
+                'inviterName' => $inviter->name,
+                'teamName' => $team->name,
+            ]),
+            'action_url' => url("/invitations/{$this->invitation->code}/accept"),
             'invitation_id' => $this->invitation->id,
             'team_id' => $this->invitation->team_id,
-            'team_name' => $this->invitation->team->name,
+            'team_name' => $team->name,
             'role' => $this->invitation->role->value,
         ];
     }

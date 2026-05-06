@@ -12,6 +12,7 @@ type Notification = {
     body: string;
     read_at: string | null;
     created_at: string;
+    action_url?: string | null;
 };
 
 type Props = { notifications: Notification[] };
@@ -46,6 +47,15 @@ export default function NotificationsIndex({ notifications }: Props) {
                                             {!n.read_at && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                                         </div>
                                         {n.body && <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>}
+                                        {n.action_url && (
+                                            <div className="mt-3">
+                                                <Button size="sm" variant="outline" asChild>
+                                                    <a href={n.action_url}>
+                                                        {n.title.includes('Invitation') ? 'Accept Invitation' : 'View'}
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        )}
                                         <p className="mt-1 text-xs text-muted-foreground/70">{n.created_at}</p>
                                     </div>
                                 </div>

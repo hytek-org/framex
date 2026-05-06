@@ -20,6 +20,7 @@ class NotificationCenterController extends Controller
                     'id' => $notification->id,
                     'title' => $notification->data['title'] ?? 'Notification',
                     'body' => $notification->data['body'] ?? '',
+                    'action_url' => $notification->data['action_url'] ?? null,
                     'read_at' => $notification->read_at?->toISOString(),
                     'created_at' => $notification->created_at->diffForHumans(),
                 ]),
