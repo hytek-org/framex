@@ -9,6 +9,13 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             currentTeam: Team | null;
             teams: Team[];
+            locale: string;
+            isAdmin: boolean;
+            unreadNotificationsCount: number;
+            billing: {
+                plan: string;
+                subscribed: boolean;
+            } | null;
             [key: string]: unknown;
         };
     }

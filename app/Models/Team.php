@@ -81,6 +81,16 @@ class Team extends Model
         return $this->hasMany(TeamInvitation::class);
     }
 
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(TeamFile::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
