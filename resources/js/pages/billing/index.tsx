@@ -41,7 +41,6 @@ export default function BillingIndex({
         const params = new URLSearchParams(window.location.search);
         if (params.get('checkout') === 'success') {
             toast.success('Subscription started successfully!');
-            // Clean up URL
             window.history.replaceState({}, '', window.location.pathname);
         }
         if (params.get('checkout') === 'cancelled') {
@@ -49,6 +48,12 @@ export default function BillingIndex({
             window.history.replaceState({}, '', window.location.pathname);
         }
     }, [url]);
+
+    const { errors } = usePage().props;
+    useEffect(() => {
+        if (errors.plan) toast.error(errors.plan as string);
+        if (errors.stripe) toast.error(errors.stripe as string);
+    }, [errors]);
 
     return (
         <>
@@ -174,7 +179,7 @@ export default function BillingIndex({
                                     <Button
                                         className="mt-6 w-full"
                                         variant={isCurrent ? 'outline' : 'default'}
-                                        disabled={isCurrent || !stripeConfigured || (plan.id !== 'free' && plan.configured === false)}
+                                        disabled={isCurrent || !stripeConfigured}
                                         onClick={() => {
                                             if (!isCurrent && stripeConfigured) {
                                                 router.post(
@@ -185,9 +190,7 @@ export default function BillingIndex({
                                     >
                                         {isCurrent
                                             ? 'Current Plan'
-                                            : plan.configured === false 
-                                                ? 'Coming Soon'
-                                                : `Upgrade to ${plan.name}`}
+                                            : `Upgrade to ${plan.name}`}
                                     </Button>
                                 </div>
                             </StaggerItem>

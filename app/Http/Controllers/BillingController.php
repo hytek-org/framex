@@ -36,25 +36,33 @@ class BillingController extends Controller
         ]);
     }
 
-    public function checkout(Request $request, string $plan): RedirectResponse
+    public function checkout(Request $request, string $plan): \Symfony\Component\HttpFoundation\Response
     {
         $price = config("services.stripe.price_{$plan}");
 
-        abort_if(! $price, 422, __('Stripe price is not configured for this plan.'));
+        if (! $price) {
+            return back()->withErrors([
+                'plan' => "The {$plan} plan is not correctly configured in the system."
+            ]);
+        }
 
-        return $request->user()
+        $checkout = $request->user()
             ->newSubscription('default', $price)
             ->checkout([
                 'success_url' => route('billing.index').'?checkout=success',
                 'cancel_url' => route('billing.index').'?checkout=cancelled',
             ]);
+
+        return Inertia::location($checkout->getTargetUrl());
     }
 
-    public function portal(Request $request): RedirectResponse
+    public function portal(Request $request): \Symfony\Component\HttpFoundation\Response
     {
-        abort_unless(filled(config('cashier.key')), 422, __('Stripe is not configured.'));
+        if (!filled(config('cashier.key'))) {
+            return back()->withErrors(['stripe' => 'Stripe is not configured.']);
+        }
 
-        return $request->user()->redirectToBillingPortal(route('billing.index'));
+        return Inertia::location($request->user()->billingPortalUrl(route('billing.index')));
     }
 
     /**
@@ -76,7 +84,6 @@ class BillingController extends Controller
                 'price' => '$29', 
                 'description' => 'For teams shipping a real SaaS product.', 
                 'features' => ['Unlimited teams', 'Realtime notifications', 'Priority support'],
-                'configured' => filled(config('services.stripe.price_pro'))
             ],
             [
                 'id' => 'scale', 
@@ -84,7 +91,6 @@ class BillingController extends Controller
                 'price' => '$99', 
                 'description' => 'For serious teams with operational needs.', 
                 'features' => ['Advanced admin', 'Audit activity', 'Custom limits'],
-                'configured' => filled(config('services.stripe.price_scale'))
             ],
         ];
     }
