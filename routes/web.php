@@ -17,6 +17,9 @@ Route::inertia('/', 'welcome', [
 ])->name('home');
 
 Route::inertia('pricing', 'pricing')->name('pricing');
+Route::inertia('features', 'features')->name('features');
+Route::inertia('about', 'about')->name('about');
+Route::inertia('contact', 'contact')->name('contact');
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])

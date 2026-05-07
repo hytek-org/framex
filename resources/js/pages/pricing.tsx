@@ -1,7 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import { Check, X, Star, Users, Zap } from 'lucide-react';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { register } from '@/routes';
 
@@ -64,30 +66,30 @@ const plans = [
     },
 ];
 
-const faqs = [
+const comparisonFeatures = [
+    { feature: 'Team Members', free: '3', pro: '25', scale: 'Unlimited' },
+    { feature: 'Workspaces', free: '1', pro: 'Unlimited', scale: 'Unlimited' },
+    { feature: 'File Storage', free: '100MB', pro: '10GB', scale: '100GB' },
+    { feature: 'API Access', free: false, pro: true, scale: true },
+    { feature: 'Custom Integrations', free: false, pro: true, scale: true },
+    { feature: 'Priority Support', free: false, pro: true, scale: true },
+    { feature: 'SSO/SAML', free: false, pro: false, scale: true },
+    { feature: 'Dedicated Support', free: false, pro: false, scale: true },
+    { feature: 'SLA Guarantee', free: false, pro: false, scale: true },
+];
+
+const testimonials = [
     {
-        q: 'Can I upgrade or downgrade at any time?',
-        a: 'Yes. You can change your plan at any time. Changes take effect immediately and billing is prorated.',
+        quote: "FrameX's pricing is incredibly fair. We started free, grew to Pro, and now Scale. Perfect for our journey.",
+        author: "David Park",
+        role: "CEO, StartupCo",
+        plan: "Scale",
     },
     {
-        q: 'What payment methods do you accept?',
-        a: 'We accept all major credit cards and debit cards via Stripe. Annual billing is available on Pro and Scale plans.',
-    },
-    {
-        q: 'Is there a free trial for paid plans?',
-        a: 'Yes. All paid plans come with a 14-day free trial. No credit card required to start.',
-    },
-    {
-        q: 'Do you offer discounts for startups?',
-        a: 'Yes. We offer 50% off for the first year for early-stage startups. Contact us to apply.',
-    },
-    {
-        q: 'What happens when I exceed my storage limit?',
-        a: 'We will notify you when you reach 80% of your storage. You can upgrade your plan or remove files at any time.',
-    },
-    {
-        q: 'Can I self-host FrameX?',
-        a: 'Absolutely. FrameX is fully open source. You can self-host on your own infrastructure with Docker.',
+        quote: "The free tier got us started, and the upgrade process was seamless. Best investment we've made.",
+        author: "Lisa Chen",
+        role: "CTO, TechCorp",
+        plan: "Pro",
     },
 ];
 
@@ -178,6 +180,116 @@ export default function Pricing() {
                                             </Link>
                                         </Button>
                                     </div>
+                                </StaggerItem>
+                            ))}
+                        </StaggerChildren>
+                    </div>
+                </section>
+
+                {/* Comparison Table */}
+                <section className="py-20 md:py-28">
+                    <div className="mx-auto max-w-6xl px-6">
+                        <FadeIn>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                                    Compare Plans
+                                </h2>
+                                <p className="mt-3 text-base text-muted-foreground">
+                                    Detailed breakdown of what's included in each plan
+                                </p>
+                            </div>
+                        </FadeIn>
+
+                        <FadeIn delay={0.2}>
+                            <Card className="mt-14 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b">
+                                                <th className="text-left p-4 font-semibold">Features</th>
+                                                <th className="text-center p-4 font-semibold">Free</th>
+                                                <th className="text-center p-4 font-semibold">
+                                                    Pro
+                                                    <Badge className="ml-2">Popular</Badge>
+                                                </th>
+                                                <th className="text-center p-4 font-semibold">Scale</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {comparisonFeatures.map((item, index) => (
+                                                <tr key={item.feature} className={cn("border-b", index % 2 === 0 ? "bg-muted/30" : "")}>
+                                                    <td className="p-4 font-medium">{item.feature}</td>
+                                                    <td className="p-4 text-center">
+                                                        {typeof item.free === 'boolean' ? (
+                                                            item.free ? <Check className="mx-auto h-5 w-5 text-green-500" /> : <X className="mx-auto h-5 w-5 text-muted-foreground" />
+                                                        ) : (
+                                                            <span className="text-sm">{item.free}</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        {typeof item.pro === 'boolean' ? (
+                                                            item.pro ? <Check className="mx-auto h-5 w-5 text-green-500" /> : <X className="mx-auto h-5 w-5 text-muted-foreground" />
+                                                        ) : (
+                                                            <span className="text-sm">{item.pro}</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        {typeof item.scale === 'boolean' ? (
+                                                            item.scale ? <Check className="mx-auto h-5 w-5 text-green-500" /> : <X className="mx-auto h-5 w-5 text-muted-foreground" />
+                                                        ) : (
+                                                            <span className="text-sm">{item.scale}</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
+                        </FadeIn>
+                    </div>
+                </section>
+
+                {/* Testimonials */}
+                <section className="border-y bg-muted/30 py-20 md:py-28">
+                    <div className="mx-auto max-w-6xl px-6">
+                        <FadeIn>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                                    What our customers say
+                                </h2>
+                                <p className="mt-3 text-base text-muted-foreground">
+                                    Trusted by developers at companies of all sizes
+                                </p>
+                            </div>
+                        </FadeIn>
+
+                        <StaggerChildren className="mt-14 grid gap-6 md:grid-cols-2" staggerDelay={0.1}>
+                            {testimonials.map((testimonial) => (
+                                <StaggerItem key={testimonial.author}>
+                                    <Card>
+                                        <CardContent className="pt-6">
+                                            <div className="flex gap-1 mb-4">
+                                                {Array.from({ length: 5 }).map((_, i) => (
+                                                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                                                ))}
+                                            </div>
+                                            <blockquote className="text-sm leading-relaxed text-foreground mb-4">
+                                                "{testimonial.quote}"
+                                            </blockquote>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm font-semibold text-foreground">
+                                                        {testimonial.author}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {testimonial.role}
+                                                    </div>
+                                                </div>
+                                                <Badge variant="outline">{testimonial.plan}</Badge>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 </StaggerItem>
                             ))}
                         </StaggerChildren>

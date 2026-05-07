@@ -3,16 +3,16 @@ import AppLogoIcon from '@/components/app-logo-icon';
 
 const footerLinks = {
     Product: [
-        { label: 'Features', href: '#features' },
+        { label: 'Features', href: '/features' },
         { label: 'Pricing', href: '/pricing' },
         { label: 'Dashboard', href: '#' },
         { label: 'API', href: '#' },
     ],
     Company: [
-        { label: 'About', href: '#' },
+        { label: 'About', href: '/about' },
         { label: 'Blog', href: '#' },
         { label: 'Careers', href: '#' },
-        { label: 'Contact', href: '#' },
+        { label: 'Contact', href: '/contact' },
     ],
     Resources: [
         { label: 'Documentation', href: '#' },

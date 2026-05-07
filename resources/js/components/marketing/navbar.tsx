@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 import { dashboard, login, register } from '@/routes';
 
 const navLinks = [
-    { label: 'Features', href: '#features' },
+    { label: 'Features', href: '/features' },
     { label: 'Pricing', href: '/pricing' },
-    { label: 'Docs', href: '#' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
 ];
 
 export function Navbar() {
