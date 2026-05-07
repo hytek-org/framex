@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Monitor, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
+import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
 import { dashboard, login, register } from '@/routes';
 
@@ -16,12 +17,42 @@ const navLinks = [
 export function Navbar() {
     const { auth, currentTeam } = usePage().props;
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { appearance, updateAppearance } = useAppearance();
     const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : '/';
+
+    const cycleAppearance = () => {
+        const appearances = ['light', 'dark', 'system'] as const;
+        const currentIndex = appearances.indexOf(appearance);
+        const nextIndex = (currentIndex + 1) % appearances.length;
+        updateAppearance(appearances[nextIndex]);
+    };
+
+    const getAppearanceIcon = () => {
+        switch (appearance) {
+            case 'light':
+                return <Sun className="h-4 w-4" />;
+            case 'dark':
+                return <Moon className="h-4 w-4" />;
+            case 'system':
+                return <Monitor className="h-4 w-4" />;
+        }
+    };
+
+    const getAppearanceLabel = () => {
+        switch (appearance) {
+            case 'light':
+                return 'Light';
+            case 'dark':
+                return 'Dark';
+            case 'system':
+                return 'System';
+        }
+    };
 
     return (
         <header className="fixed inset-x-0 top-0 z-50">
             <div className="mx-auto max-w-6xl px-6">
-                <nav className="flex h-16 items-center justify-between">
+                <nav className="flex h-16 items-center justify-between bg-background/80 backdrop-blur-xl border-b">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2.5">
                         <AppLogoIcon className="h-7 w-7 fill-current text-foreground" />
@@ -45,6 +76,15 @@ export function Navbar() {
 
                     {/* Right side */}
                     <div className="hidden items-center gap-2 md:flex">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={cycleAppearance}
+                            className="h-8 w-8 p-0"
+                            title={`Current: ${getAppearanceLabel()}`}
+                        >
+                            {getAppearanceIcon()}
+                        </Button>
                         {auth.user ? (
                             <Button asChild size="sm">
                                 <Link href={dashboardUrl}>Dashboard</Link>
@@ -100,6 +140,15 @@ export function Navbar() {
                         </Link>
                     ))}
                     <div className="flex gap-2 pt-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={cycleAppearance}
+                            className="flex-1"
+                        >
+                            {getAppearanceIcon()}
+                            <span className="ml-2">{getAppearanceLabel()}</span>
+                        </Button>
                         {auth.user ? (
                             <Button asChild size="sm" className="w-full">
                                 <Link href={dashboardUrl}>Dashboard</Link>

@@ -8,15 +8,17 @@ import {
     Clock,
     Send,
     CheckCircle,
+    Link,
 } from 'lucide-react';
 import { useState } from 'react';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { register } from '@/routes';
 
 /* ──────────────────────────────────────────────────────────
@@ -384,10 +386,10 @@ export default function Contact() {
                                     </p>
                                     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                         <Button size="lg" asChild>
-                                            <a href={register()}>
+                                            <Link href={register().url}>
                                                 Get Started Free
                                                 <ArrowRight className="ml-2 h-4 w-4" />
-                                            </a>
+                                            </Link>
                                         </Button>
                                         <Button size="lg" variant="outline" asChild>
                                             <a href="/pricing">View Pricing</a>

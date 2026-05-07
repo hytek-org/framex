@@ -1,9 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Check, X, Star, Users, Zap } from 'lucide-react';
+import { Check, X, Star } from 'lucide-react';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { register } from '@/routes';
 
@@ -93,6 +93,33 @@ const testimonials = [
     },
 ];
 
+const faqs = [
+    {
+        q: 'Can I upgrade or downgrade at any time?',
+        a: 'Yes. You can change your plan at any time. Changes take effect immediately and billing is prorated.',
+    },
+    {
+        q: 'What payment methods do you accept?',
+        a: 'We accept all major credit cards and debit cards via Stripe. Annual billing is available on Pro and Scale plans.',
+    },
+    {
+        q: 'Is there a free trial for paid plans?',
+        a: 'Yes. All paid plans come with a 14-day free trial. No credit card required to start.',
+    },
+    {
+        q: 'Do you offer discounts for startups?',
+        a: 'Yes. We offer 50% off for the first year for early-stage startups. Contact us to apply.',
+    },
+    {
+        q: 'What happens when I exceed my storage limit?',
+        a: 'We will notify you when you reach 80% of your storage. You can upgrade your plan or remove files at any time.',
+    },
+    {
+        q: 'Can I self-host FrameX?',
+        a: 'Absolutely. FrameX is fully open source. You can self-host on your own infrastructure with Docker.',
+    },
+];
+
 export default function Pricing() {
     const { auth } = usePage().props;
 
@@ -159,7 +186,7 @@ export default function Pricing() {
                                                     key={feature}
                                                     className="flex items-start gap-2.5 text-sm text-foreground"
                                                 >
-                                                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                                                     {feature}
                                                 </li>
                                             ))}

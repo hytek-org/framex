@@ -11,9 +11,9 @@ import {
     Zap,
 } from 'lucide-react';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { register } from '@/routes';
 
 /* ──────────────────────────────────────────────────────────
@@ -178,7 +178,7 @@ export default function About() {
                                 <div className="space-y-6">
                                     {milestones.map((milestone, index) => (
                                         <div key={milestone.year} className="flex gap-4">
-                                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                                                 {index + 1}
                                             </div>
                                             <div>
@@ -285,7 +285,7 @@ export default function About() {
                                     </p>
                                     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                         <Button size="lg" asChild>
-                                            <a href={register()}>
+                                            <a href={String(register())}>
                                                 Get Started Free
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </a>

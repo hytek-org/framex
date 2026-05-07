@@ -21,7 +21,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Timeline } from '@/components/shared/timeline';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 
 type Metric = {
@@ -61,14 +60,25 @@ type Props = {
 
 function getGreeting(): string {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
+
+    if (hour < 12) {
+        return 'Good morning';
+    }
+
+    if (hour < 18) {
+        return 'Good afternoon';
+    }
+
     return 'Good evening';
 }
 
 function CustomTooltip({ active, payload, label }: Record<string, unknown>) {
-    if (!active || !payload) return null;
+    if (!active || !payload) {
+        return null;
+    }
+
     const items = payload as Array<{ value: number; name: string; color: string }>;
+
     return (
         <div className="rounded-xl border bg-popover px-3 py-2 text-xs shadow-lg">
             <p className="mb-1 font-medium text-popover-foreground">{label as string}</p>
@@ -100,7 +110,7 @@ export default function Dashboard({
                 {/* Greeting */}
                 <FadeIn>
                     <PageHeader
-                        title={`${getGreeting()}, ${auth.user.name.split(' ')[0]}`}
+                        title={`${getGreeting()}, ${auth.user?.name?.split(' ')[0] || 'User'}`}
                         description={new Date().toLocaleDateString('en-US', {
                             weekday: 'long',
                             year: 'numeric',

@@ -5,14 +5,12 @@ import {
     Bell,
     CreditCard,
     Key,
-    LayoutGrid,
     Lock,
     Shield,
     Users,
     Zap,
     CheckCircle,
     Star,
-    TrendingUp,
     Globe,
     Smartphone,
     Cloud,
@@ -22,10 +20,11 @@ import {
     Activity,
 } from 'lucide-react';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { register } from '@/routes';
+
 
 /* ──────────────────────────────────────────────────────────
    FEATURES DATA
@@ -150,7 +149,7 @@ export default function Features() {
                         <FadeIn delay={0.4}>
                             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                 <Button size="lg" asChild className="min-w-40">
-                                    <a href={register()}>
+                                    <a href={String(register())}>
                                         Start Building
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </a>
@@ -204,7 +203,7 @@ export default function Features() {
                                             <ul className="space-y-2">
                                                 {feature.benefits.map((benefit) => (
                                                     <li key={benefit} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <CheckCircle className="h-4 w-4 flex-shrink-0 text-primary" />
+                                                        <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
                                                         {benefit}
                                                     </li>
                                                 ))}
@@ -314,7 +313,7 @@ export default function Features() {
                                     </p>
                                     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                         <Button size="lg" asChild>
-                                            <a href={register()}>
+                                        <a href={String(register())}>
                                                 Get Started Free
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </a>

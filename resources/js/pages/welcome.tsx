@@ -6,7 +6,6 @@ import {
     CreditCard,
     Key,
     LayoutGrid,
-    Lock,
     Shield,
     Users,
     Zap,
@@ -14,7 +13,7 @@ import {
 import { AnimatedCounter } from '@/components/shared/animated-counter';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
 import { Button } from '@/components/ui/button';
-import { login, register } from '@/routes';
+import { register } from '@/routes';
 
 /* ──────────────────────────────────────────────────────────
    FEATURES DATA
@@ -86,11 +85,7 @@ const steps = [
 /* ──────────────────────────────────────────────────────────
    PAGE
    ────────────────────────────────────────────────────────── */
-export default function Welcome({
-    canRegister = true,
-}: {
-    canRegister?: boolean;
-}) {
+export default function Welcome() {
     const { auth } = usePage().props;
 
     return (
@@ -245,7 +240,7 @@ export default function Welcome({
                                     </div>
                                 </div>
                                 {/* Glow effect */}
-                                <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/5 to-transparent" />
+                                <div className="pointer-events-none absolute -inset-px rounded-2xl bg-linear-to-b from-primary/5 to-transparent" />
                             </div>
                         </FadeIn>
                     </div>
