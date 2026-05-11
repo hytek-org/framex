@@ -112,39 +112,11 @@ A modern full-stack web application built with **Laravel 13**, **React**, **Type
 
 ### Setup Instructions
 
-1. **Clone and Install Dependencies**
+ **Creating an Application Using a Starter Kit**
    ```bash
-   git clone <repository-url>
-   cd framex
-   composer install
-   pnpm install
+  laravel new my-app --using=hytek/framex
    ```
 
-2. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-3. **Database Setup**
-   ```bash
-   php artisan migrate
-   php artisan db:seed
-   ```
-
-4. **Build Frontend Assets**
-   ```bash
-   pnpm run build
-   # For development with hot reload
-   pnpm run dev
-   ```
-
-5. **Start Development Server**
-   ```bash
-   php artisan serve
-   # In another terminal, start Reverb for real-time features
-   php artisan reverb:start
-   ```
 
 ### Docker Setup (Optional)
 ```bash
