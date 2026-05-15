@@ -8,8 +8,8 @@ import {
     Clock,
     Send,
     CheckCircle,
-    Link,
 } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
 
@@ -135,16 +135,16 @@ export default function Contact() {
 
                         <FadeIn delay={0.2}>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-                                We'd love to hear
+                                Connect with our
                                 <br />
-                                <span className="text-gradient-brand">from you</span>
+                                <span className="text-gradient-brand">product specialists</span>
                             </h1>
                         </FadeIn>
 
                         <FadeIn delay={0.3}>
                             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                Have a question, need support, or want to discuss enterprise solutions?
-                                Our team is here to help you succeed with FrameX.
+                                Whether you need onboarding guidance, enterprise support, or an integration partner,
+                                our team is ready to help you launch faster and scale smarter.
                             </p>
                         </FadeIn>
                     </div>
@@ -386,7 +386,7 @@ export default function Contact() {
                                     </p>
                                     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                         <Button size="lg" asChild>
-                                            <Link href={register().url}>
+                                            <Link href={String(register())}>
                                                 Get Started Free
                                                 <ArrowRight className="ml-2 h-4 w-4" />
                                             </Link>

@@ -133,16 +133,16 @@ export default function Features() {
 
                         <FadeIn delay={0.2}>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-                                Everything you need to
+                                Built for high-growth teams,
                                 <br />
-                                <span className="text-gradient-brand">scale globally</span>
+                                <span className="text-gradient-brand">designed to scale.</span>
                             </h1>
                         </FadeIn>
 
                         <FadeIn delay={0.3}>
                             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                From startup to enterprise, FrameX provides the tools and infrastructure
-                                to build, launch, and scale world-class SaaS products.
+                                FrameX combines modern architecture, premium UX, and enterprise-ready controls
+                                so your product launches faster and stays performant at every stage.
                             </p>
                         </FadeIn>
 
@@ -150,7 +150,7 @@ export default function Features() {
                             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                 <Button size="lg" asChild className="min-w-40">
                                     <a href={String(register())}>
-                                        Start Building
+                                        Start Your Free Trial
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </a>
                                 </Button>

@@ -12,15 +12,15 @@ const plans = [
         name: 'Free',
         price: '$0',
         period: 'forever',
-        description: 'Perfect for side projects and experimentation.',
+        description: 'Start with core SaaS essentials for prototypes and early validation.',
         features: [
             'Up to 3 team members',
             '1 workspace',
             '100MB file storage',
             'Community support',
-            'Basic analytics',
+            'Core analytics dashboard',
         ],
-        cta: 'Get Started',
+        cta: 'Start Free',
         href: register(),
         highlighted: false,
     },
@@ -47,7 +47,7 @@ const plans = [
         name: 'Scale',
         price: '$99',
         period: '/month',
-        description: 'For organizations that need enterprise features.',
+        description: 'For enterprise teams that require advanced controls, support, and SLA guarantees.',
         features: [
             'Unlimited team members',
             'Unlimited workspaces',
@@ -133,11 +133,11 @@ export default function Pricing() {
                     <div className="mx-auto max-w-4xl px-6 text-center">
                         <FadeIn>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-                                Simple, transparent pricing
+                                Premium pricing for ambitious teams
                             </h1>
                             <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
-                                Start free and scale as you grow. No hidden fees,
-                                no surprises, no lock-in.
+                                Choose the plan that fits your growth stage, with clear upgrade paths,
+                                enterprise controls, and no unexpected fees.
                             </p>
                         </FadeIn>
                     </div>

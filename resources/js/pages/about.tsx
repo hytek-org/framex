@@ -108,16 +108,16 @@ export default function About() {
 
                         <FadeIn delay={0.2}>
                             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-                                Building the future of
+                                Where elegant design
                                 <br />
-                                <span className="text-gradient-brand">SaaS development</span>
+                                <span className="text-gradient-brand">meets enterprise scale.</span>
                             </h1>
                         </FadeIn>
 
                         <FadeIn delay={0.3}>
                             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                We're on a mission to democratize SaaS development, providing developers
-                                with the tools and infrastructure they need to build world-class products.
+                                FrameX is the SaaS foundation chosen by teams that want premium UX,
+                                rapid delivery, and a platform they can scale with confidence.
                             </p>
                         </FadeIn>
                     </div>
@@ -157,18 +157,16 @@ export default function About() {
                                     </h2>
                                     <div className="mt-6 space-y-4 text-base leading-relaxed text-muted-foreground">
                                         <p>
-                                            FrameX was born from frustration. As developers building SaaS products,
-                                            we found ourselves rebuilding the same features over and over: authentication,
-                                            billing, team management, notifications.
+                                            FrameX began as a clear mission: remove the repetitive work from SaaS development
+                                            and give teams a polished foundation they could trust.
                                         </p>
                                         <p>
-                                            We realized that every SaaS company faces the same challenges. So we decided
-                                            to build once, and let everyone benefit. What started as a simple authentication
-                                            library has grown into a comprehensive platform that powers thousands of SaaS products.
+                                            We built a product that blends thoughtful design, modern performance, and
+                                            enterprise-ready controls so engineering teams can launch faster and stay focused.
                                         </p>
                                         <p>
-                                            Today, FrameX is trusted by developers worldwide to build faster, scale easier,
-                                            and focus on what matters most: their unique product vision.
+                                            Today, FrameX is used by ambitious teams worldwide to build better products,
+                                            faster — with confidence and composure.
                                         </p>
                                     </div>
                                 </div>
