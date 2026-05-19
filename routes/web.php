@@ -5,6 +5,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\PublicTaxonomyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\NotificationCenterController;
@@ -25,6 +28,12 @@ Route::inertia('contact', 'contact')->name('contact');
 Route::get('blogs', [BlogController::class, 'publicIndex'])->name('blogs.index');
 Route::get('blogs/{slug}', [BlogController::class, 'publicShow'])->name('blogs.show');
 
+Route::get('categories', [PublicTaxonomyController::class, 'categoriesIndex'])->name('categories.index');
+Route::get('categories/{slug}', [PublicTaxonomyController::class, 'categoriesShow'])->name('categories.show');
+
+Route::get('tags', [PublicTaxonomyController::class, 'tagsIndex'])->name('tags.index');
+Route::get('tags/{slug}', [PublicTaxonomyController::class, 'tagsShow'])->name('tags.show');
+
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
@@ -34,14 +43,32 @@ Route::prefix('{current_team}')
         Route::post('files', [FileController::class, 'store'])->name('files.store');
         Route::delete('files/{file}', [FileController::class, 'destroy'])->name('files.destroy');
 
+        // ── Blog management ─────────────────────────────────────────────
         Route::prefix('manage/blogs')->name('manage.blogs.')->group(function () {
             Route::get('/', [BlogController::class, 'index'])->name('index');
             Route::get('/create', [BlogController::class, 'create'])->name('create');
             Route::post('/', [BlogController::class, 'store'])->name('store');
-            Route::get('/{blog}', [BlogController::class, 'show'])->name('show');
-            Route::get('/{blog}/edit', [BlogController::class, 'edit'])->name('edit');
-            Route::put('/{blog}', [BlogController::class, 'update'])->name('update');
-            Route::delete('/{blog}', [BlogController::class, 'destroy'])->name('destroy');
+            Route::get('/{blog:slug}', [BlogController::class, 'show'])->name('show');
+            Route::get('/{blog:slug}/edit', [BlogController::class, 'edit'])->name('edit');
+            // POST with _method=PUT so multipart forms work
+            Route::put('/{blog:slug}', [BlogController::class, 'update'])->name('update');
+            Route::delete('/{blog:slug}', [BlogController::class, 'destroy'])->name('destroy');
+        });
+
+        // ── Category management (slug-based) ────────────────────────────
+        Route::prefix('manage/categories')->name('manage.categories.')->group(function () {
+            Route::get('/', [CategoryController::class, 'index'])->name('index');
+            Route::post('/', [CategoryController::class, 'store'])->name('store');
+            Route::put('/{category:slug}', [CategoryController::class, 'update'])->name('update');
+            Route::delete('/{category:slug}', [CategoryController::class, 'destroy'])->name('destroy');
+        });
+
+        // ── Tag management (slug-based) ──────────────────────────────────
+        Route::prefix('manage/tags')->name('manage.tags.')->group(function () {
+            Route::get('/', [TagController::class, 'index'])->name('index');
+            Route::post('/', [TagController::class, 'store'])->name('store');
+            Route::put('/{tag:slug}', [TagController::class, 'update'])->name('update');
+            Route::delete('/{tag:slug}', [TagController::class, 'destroy'])->name('destroy');
         });
     });
 

@@ -2,12 +2,15 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Activity,
     Bell,
+    BookOpen,
     CreditCard,
     FileText,
+    FolderOpen,
     Key,
     LayoutGrid,
     Search,
     Settings,
+    Tags,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -51,6 +54,21 @@ export function AppSidebar() {
             title: 'Files',
             href: `${teamPrefix}/files`,
             icon: FileText,
+        },
+        {
+            title: 'Blogs',
+            href: `${teamPrefix}/manage/blogs`,
+            icon: BookOpen,
+        },
+        {
+            title: 'Categories',
+            href: `${teamPrefix}/manage/categories`,
+            icon: FolderOpen,
+        },
+        {
+            title: 'Tags',
+            href: `${teamPrefix}/manage/tags`,
+            icon: Tags,
         },
     ];
 

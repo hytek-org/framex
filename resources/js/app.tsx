@@ -20,6 +20,8 @@ createInertiaApp({
             case name === 'about':
             case name === 'contact':
             case name.startsWith('blogs/'):
+            case name.startsWith('categories/'):
+            case name.startsWith('tags/'):
                 return MarketingLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;

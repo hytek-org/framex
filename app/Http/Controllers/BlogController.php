@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -11,144 +13,145 @@ use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
-    /**
-     * Display a listing of the resource for public.
-     */
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
-        $blogs = Blog::where('is_published', true)
-            ->with(['user'])
-            ->latest('published_at')
-            ->paginate(12);
+        $query = Blog::where('is_published', true)
+            ->with(['user', 'category', 'tags'])
+            ->latest('published_at');
 
-        return Inertia::render('blogs/index', [
-            'blogs' => $blogs
-        ]);
+        if ($request->filled('category')) {
+            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
+        }
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', fn($q) => $q->where('slug', $request->tag));
+        }
+
+        $blogs = $query->paginate(12)->withQueryString();
+        $categories = Category::withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
+        $tags = Tag::withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
+
+        return Inertia::render('blogs/index', compact('blogs', 'categories', 'tags'));
     }
 
-    /**
-     * Display single blog post.
-     */
     public function publicShow($slug)
     {
-        $blog = Blog::where('slug', $slug)
-            ->where('is_published', true)
-            ->with(['user'])
+        $blog = Blog::where('slug', $slug)->where('is_published', true)
+            ->with(['user', 'category', 'tags'])
             ->firstOrFail();
 
-        return Inertia::render('blogs/show', [
-            'blog' => $blog
-        ]);
+        $related = Blog::where('is_published', true)
+            ->where('id', '!=', $blog->id)
+            ->where('category_id', $blog->category_id)
+            ->with(['user', 'category'])
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+
+        return Inertia::render('blogs/show', compact('blog', 'related'));
     }
 
-    /**
-     * Display a listing of the resource for admin/management.
-     */
     public function index()
     {
-        $blogs = Blog::with(['user'])->latest()->paginate(10);
-        return Inertia::render('manage/blogs/index', [
-            'blogs' => $blogs
+        $blogs = Blog::where('team_id', Auth::user()->current_team_id)
+            ->with(['user', 'category', 'tags'])
+            ->latest()
+            ->paginate(15);
+        return Inertia::render('manage/blogs/index', ['blogs' => $blogs]);
+    }
+
+    public function create()
+    {
+        abort_unless(Auth::user()->can('create', Blog::class), 403);
+
+        return Inertia::render('manage/blogs/create', [
+            'categories' => Category::orderBy('name')->get(),
+            'tags' => Tag::orderBy('name')->get(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('manage/blogs/create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
+        abort_unless(Auth::user()->can('create', Blog::class), 403);
+
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string',
-            'content' => 'nullable|string',
-            'is_published' => 'boolean',
+            'title'       => 'required|string|max:255',
+            'excerpt'     => 'nullable|string',
+            'content'     => 'nullable|string',
+            'is_published'=> 'boolean',
+            'category_id' => 'nullable|exists:categories,id',
+            'tag_ids'     => 'nullable|array',
+            'tag_ids.*'   => 'exists:tags,id',
             'cover_image' => 'nullable|image|max:5120',
         ]);
 
-        $slug = Str::slug($validated['title']);
-        $originalSlug = $slug;
-        $count = 1;
-        while (Blog::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $count;
-            $count++;
-        }
-        
+        $slug = $this->uniqueSlug(Str::slug($validated['title']));
+
         $imagePath = null;
         if ($request->hasFile('cover_image')) {
             $imagePath = $request->file('cover_image')->store('blogs', 'public');
         }
 
         $blog = Blog::create([
-            'title' => $validated['title'],
-            'slug' => $slug,
-            'excerpt' => $validated['excerpt'] ?? null,
-            'content' => $validated['content'] ?? null,
-            'cover_image' => $imagePath,
+            'title'        => $validated['title'],
+            'slug'         => $slug,
+            'excerpt'      => $validated['excerpt'] ?? null,
+            'content'      => $validated['content'] ?? null,
+            'cover_image'  => $imagePath,
             'is_published' => $request->boolean('is_published'),
             'published_at' => $request->boolean('is_published') ? now() : null,
-            'user_id' => Auth::id(),
-            'team_id' => Auth::user()->current_team_id ?? null,
+            'user_id'      => Auth::id(),
+            'team_id'      => Auth::user()->current_team_id ?? null,
+            'category_id'  => $validated['category_id'] ?? null,
         ]);
 
-        return redirect()->route('manage.blogs.index')->with('success', 'Blog created successfully.');
+        if (!empty($validated['tag_ids'])) {
+            $blog->tags()->sync($validated['tag_ids']);
+        }
+
+        return redirect()->back()->with('success', 'Blog post created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Blog $blog)
+    public function show($current_team, Blog $blog)
     {
-        return Inertia::render('manage/blogs/show', [
-            'blog' => $blog
-        ]);
+        abort_unless(Auth::user()->can('view', $blog), 403);
+
+        $blog->load(['user', 'category', 'tags']);
+        return Inertia::render('manage/blogs/show', ['blog' => $blog]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Blog $blog)
+    public function edit($current_team, Blog $blog)
     {
+        abort_unless(Auth::user()->can('update', $blog), 403);
+
+        $blog->load(['tags']);
         return Inertia::render('manage/blogs/edit', [
-            'blog' => $blog
+            'blog'       => $blog,
+            'categories' => Category::orderBy('name')->get(),
+            'tags'       => Tag::orderBy('name')->get(),
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Blog $blog)
+    public function update(Request $request, $current_team, Blog $blog)
     {
+        abort_unless(Auth::user()->can('update', $blog), 403);
+
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string',
-            'content' => 'nullable|string',
-            'is_published' => 'boolean',
+            'title'       => 'required|string|max:255',
+            'excerpt'     => 'nullable|string',
+            'content'     => 'nullable|string',
+            'is_published'=> 'boolean',
+            'category_id' => 'nullable|exists:categories,id',
+            'tag_ids'     => 'nullable|array',
+            'tag_ids.*'   => 'exists:tags,id',
             'cover_image' => 'nullable|image|max:5120',
         ]);
 
         if ($validated['title'] !== $blog->title) {
-            $slug = Str::slug($validated['title']);
-            $originalSlug = $slug;
-            $count = 1;
-            while (Blog::where('slug', $slug)->where('id', '!=', $blog->id)->exists()) {
-                $slug = $originalSlug . '-' . $count;
-                $count++;
-            }
-            $blog->slug = $slug;
+            $blog->slug = $this->uniqueSlug(Str::slug($validated['title']), $blog->id);
         }
 
         if ($request->hasFile('cover_image')) {
-            if ($blog->cover_image) {
-                Storage::disk('public')->delete($blog->cover_image);
-            }
+            if ($blog->cover_image) \Illuminate\Support\Facades\Storage::disk('public')->delete($blog->cover_image);
             $blog->cover_image = $request->file('cover_image')->store('blogs', 'public');
         }
 
@@ -156,26 +159,35 @@ class BlogController extends Controller
             $blog->published_at = now();
         }
 
-        $blog->title = $validated['title'];
-        $blog->excerpt = $validated['excerpt'] ?? null;
-        $blog->content = $validated['content'] ?? null;
-        $blog->is_published = $request->boolean('is_published');
-        
-        $blog->save();
+        $blog->fill([
+            'title'        => $validated['title'],
+            'excerpt'      => $validated['excerpt'] ?? null,
+            'content'      => $validated['content'] ?? null,
+            'is_published' => $request->boolean('is_published'),
+            'category_id'  => $validated['category_id'] ?? null,
+        ])->save();
 
-        return redirect()->route('manage.blogs.index')->with('success', 'Blog updated successfully.');
+        $blog->tags()->sync($validated['tag_ids'] ?? []);
+
+        return redirect()->route('manage.blogs.index', ['current_team' => $current_team])->with('success', 'Blog post updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Blog $blog)
+    public function destroy($current_team, Blog $blog)
     {
-        if ($blog->cover_image) {
-            Storage::disk('public')->delete($blog->cover_image);
-        }
-        $blog->delete();
+        abort_unless(Auth::user()->can('delete', $blog), 403);
 
-        return redirect()->route('manage.blogs.index')->with('success', 'Blog deleted successfully.');
+        if ($blog->cover_image) \Illuminate\Support\Facades\Storage::disk('public')->delete($blog->cover_image);
+        $blog->tags()->detach();
+        $blog->delete();
+        return redirect()->back()->with('success', 'Blog post deleted.');
+    }
+
+    private function uniqueSlug(string $slug, ?int $ignoreId = null): string
+    {
+        $orig = $slug; $i = 1;
+        while (Blog::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $slug = $orig . '-' . $i++;
+        }
+        return $slug;
     }
 }

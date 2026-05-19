@@ -1,40 +1,46 @@
-import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Save, Loader2, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ImagePlus, Tag, FolderOpen, X, BookOpen } from 'lucide-react';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { useState } from 'react';
 
-export default function BlogEdit({ blog }: { blog: any }) {
+export default function BlogEdit({ blog, categories, tags }: { blog: any; categories: any[]; tags: any[] }) {
     const { currentTeam } = usePage().props as any;
-    const teamPrefix = currentTeam?.slug ? `/${currentTeam.slug}` : '';
+    const tp = currentTeam?.slug ? `/${currentTeam.slug}` : '';
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Manage Blogs', href: `${teamPrefix}/manage/blogs` },
+        { title: 'Blog Management', href: `${tp}/manage/blogs` },
         { title: 'Edit Post', href: '#' },
     ];
 
-    const { data, setData, processing, errors } = useForm({
+    const [form, setForm] = useState({
         title: blog.title || '',
         excerpt: blog.excerpt || '',
         content: blog.content || '',
-        cover_image: null as File | null,
         is_published: !!blog.is_published,
-        _method: 'PUT', // Needed for file upload with PUT in Laravel
+        category_id: blog.category_id ?? '' as string | number,
+        tag_ids: (blog.tags?.map((t: any) => t.id) || []) as number[],
+        cover_image: null as File | null,
+        _method: 'PUT',
     });
-
+    const [processing, setProcessing] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(
         blog.cover_image ? `/storage/${blog.cover_image}` : null
     );
 
+    const setData = (key: string, value: any) => setForm(prev => ({ ...prev, [key]: value }));
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post(`${teamPrefix}/manage/blogs/${blog.id}`, data, {
+        setProcessing(true);
+        router.post(`${tp}/manage/blogs/${blog.slug}`, form as any, {
             forceFormData: true,
+            onFinish: () => setProcessing(false),
         });
     };
 
@@ -43,134 +49,182 @@ export default function BlogEdit({ blog }: { blog: any }) {
         if (file) {
             setData('cover_image', file);
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
+            reader.onloadend = () => setImagePreview(reader.result as string);
             reader.readAsDataURL(file);
         }
     };
 
+    const toggleTag = (id: number) => {
+        setData('tag_ids', form.tag_ids.includes(id)
+            ? form.tag_ids.filter(t => t !== id)
+            : [...form.tag_ids, id]
+        );
+    };
+
     return (
         <>
-            <Head title={`Edit - ${blog.title}`} />
+            <Head title={`Edit — ${blog.title}`} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="outline" size="icon" asChild className="shrink-0">
-                            <Link href={`${teamPrefix}/manage/blogs`}>
-                                <ArrowLeft className="h-4 w-4" />
-                            </Link>
+            <div className="flex h-full flex-1 flex-col">
+                {/* Header */}
+                <div className="border-b bg-card/50 backdrop-blur-sm px-6 py-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <Button variant="ghost" size="icon" asChild className="h-8 w-8 rounded-lg">
+                            <Link href={`${tp}/manage/blogs`}><ArrowLeft className="h-4 w-4" /></Link>
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Edit Post</h1>
-                            <p className="text-muted-foreground">Update your premium blog post</p>
+                            <div className="flex items-center gap-2">
+                                <BookOpen className="h-4 w-4 text-primary" />
+                                <h1 className="text-base font-bold">Edit Post</h1>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate max-w-[240px]">{blog.title}</p>
                         </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={`/blogs/${blog.slug}`} target="_blank" rel="noreferrer">Preview ↗</a>
+                        </Button>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border text-xs">
+                            <span className="text-muted-foreground">Publish</span>
+                            <Switch
+                                checked={form.is_published}
+                                onCheckedChange={c => setData('is_published', c)}
+                                className="scale-75"
+                            />
+                            <span className={form.is_published ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-muted-foreground'}>
+                                {form.is_published ? 'On' : 'Off'}
+                            </span>
+                        </div>
+                        <Button type="submit" form="edit-form" disabled={processing} size="sm">
+                            {processing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+                            Save Changes
+                        </Button>
                     </div>
                 </div>
 
-                <form onSubmit={submit} className="flex flex-col lg:flex-row gap-8">
-                    {/* Main Content */}
-                    <div className="flex-1 space-y-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="title" className="text-base">Title</Label>
-                            <Input
-                                id="title"
-                                value={data.title}
-                                onChange={e => setData('title', e.target.value)}
-                                placeholder="The Future of Enterprise SaaS..."
-                                className="text-lg h-12 font-medium"
-                            />
-                            {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="content" className="text-base">Content</Label>
-                            <RichTextEditor
-                                content={data.content}
-                                onChange={content => setData('content', content)}
-                                error={errors.content}
-                            />
-                            {errors.content && <p className="text-sm text-destructive">{errors.content}</p>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="excerpt" className="text-base">Excerpt (Optional)</Label>
-                            <Textarea
-                                id="excerpt"
-                                value={data.excerpt}
-                                onChange={e => setData('excerpt', e.target.value)}
-                                placeholder="A brief summary of the post for listing pages..."
-                                rows={3}
-                                className="resize-none"
-                            />
-                            {errors.excerpt && <p className="text-sm text-destructive">{errors.excerpt}</p>}
-                        </div>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="w-full lg:w-80 shrink-0 space-y-6">
-                        <div className="surface-elevated rounded-xl p-5 space-y-6">
-                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                <Save className="h-5 w-5 text-primary" /> Publishing
-                            </h3>
-
-                            <div className="flex items-center justify-between p-3 surface-inset rounded-lg">
-                                <div className="space-y-0.5">
-                                    <Label htmlFor="is_published" className="font-medium cursor-pointer">Publish Post</Label>
-                                    <p className="text-xs text-muted-foreground">Make visible to public</p>
+                {/* Body */}
+                <div className="flex-1 overflow-auto">
+                    <form id="edit-form" onSubmit={submit}>
+                        <div className="flex flex-col lg:flex-row min-h-full">
+                            {/* Main */}
+                            <div className="flex-1 px-6 py-6 space-y-5 border-r">
+                                <div className="space-y-1.5">
+                                    <Input
+                                        value={form.title}
+                                        onChange={e => setData('title', e.target.value)}
+                                        placeholder="Post title…"
+                                        className="text-2xl font-bold h-auto py-2 border-0 shadow-none focus-visible:ring-0 px-0 placeholder:text-muted-foreground/40"
+                                    />
                                 </div>
-                                <Switch
-                                    id="is_published"
-                                    checked={data.is_published}
-                                    onCheckedChange={checked => setData('is_published', checked)}
-                                />
+
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Excerpt</Label>
+                                    <Textarea
+                                        value={form.excerpt}
+                                        onChange={e => setData('excerpt', e.target.value)}
+                                        placeholder="A brief, compelling summary…"
+                                        rows={2}
+                                        className="resize-none text-sm"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Content</Label>
+                                    <RichTextEditor
+                                        content={form.content}
+                                        onChange={c => setData('content', c)}
+                                    />
+                                </div>
                             </div>
 
-                            <Button type="submit" disabled={processing} className="w-full" size="lg">
-                                {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save Changes
-                            </Button>
-                        </div>
+                            {/* Sidebar */}
+                            <div className="w-full lg:w-72 xl:w-80 shrink-0 px-5 py-6 space-y-6 bg-muted/20">
 
-                        <div className="surface-elevated rounded-xl p-5 space-y-4">
-                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                <ImagePlus className="h-5 w-5 text-primary" /> Cover Image
-                            </h3>
-
-                            <div className="space-y-4">
-                                {imagePreview ? (
-                                    <div className="relative group rounded-lg overflow-hidden border">
-                                        <img src={imagePreview} alt="Preview" className="w-full aspect-video object-cover" />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                            <Button type="button" variant="secondary" size="sm" onClick={() => document.getElementById('cover_image')?.click()}>
-                                                Change Image
-                                            </Button>
+                                {/* Cover Image */}
+                                <div className="space-y-2.5">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                                        <ImagePlus className="h-3 w-3" /> Cover Image
+                                    </Label>
+                                    {imagePreview ? (
+                                        <div className="relative group rounded-xl overflow-hidden border">
+                                            <img src={imagePreview} className="w-full aspect-video object-cover" alt="" />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                <Button type="button" size="sm" variant="secondary" onClick={() => document.getElementById('edit_cover')?.click()}>Change</Button>
+                                                <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => { setImagePreview(null); setData('cover_image', null); }}>
+                                                    <X className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div
-                                        className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors bg-muted/20"
-                                        onClick={() => document.getElementById('cover_image')?.click()}
-                                    >
-                                        <ImagePlus className="h-8 w-8 text-muted-foreground mb-3" />
-                                        <p className="text-sm font-medium">Click to upload cover</p>
-                                        <p className="text-xs text-muted-foreground mt-1">16:9 ratio recommended (Max 5MB)</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div
+                                            className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                                            onClick={() => document.getElementById('edit_cover')?.click()}
+                                        >
+                                            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center mb-2 group-hover:bg-primary/10 transition-colors">
+                                                <ImagePlus className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                                            </div>
+                                            <p className="text-xs font-medium">Upload cover image</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">16:9 · PNG, JPG · Max 5MB</p>
+                                        </div>
+                                    )}
+                                    <Input id="edit_cover" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                </div>
 
-                                <Input
-                                    id="cover_image"
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageChange}
-                                />
-                                {errors.cover_image && <p className="text-sm text-destructive">{errors.cover_image}</p>}
+                                {/* Category */}
+                                <div className="space-y-2.5">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                                        <FolderOpen className="h-3 w-3" /> Category
+                                    </Label>
+                                    <div className="space-y-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('category_id', '')}
+                                            className={`w-full text-left text-xs px-3 py-2 rounded-lg transition-all border ${!form.category_id ? 'border-primary/50 bg-primary/8 text-primary font-medium' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
+                                        >
+                                            Uncategorized
+                                        </button>
+                                        {categories.map((cat: any) => (
+                                            <button
+                                                key={cat.id}
+                                                type="button"
+                                                onClick={() => setData('category_id', cat.id)}
+                                                className={`w-full text-left text-xs px-3 py-2 rounded-lg transition-all border flex items-center gap-2 ${form.category_id == cat.id ? 'border-primary/50 bg-primary/8 font-medium' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
+                                            >
+                                                <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                                                {cat.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Tags */}
+                                <div className="space-y-2.5">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                                        <Tag className="h-3 w-3" /> Tags
+                                    </Label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {tags.map((tag: any) => {
+                                            const active = form.tag_ids.includes(tag.id);
+                                            return (
+                                                <button
+                                                    key={tag.id}
+                                                    type="button"
+                                                    onClick={() => toggleTag(tag.id)}
+                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50 hover:bg-primary/5'}`}
+                                                >
+                                                    {tag.name}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {form.tag_ids.length > 0 && (
+                                        <p className="text-xs text-muted-foreground">{form.tag_ids.length} tag{form.tag_ids.length > 1 ? 's' : ''} selected</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </>
     );
