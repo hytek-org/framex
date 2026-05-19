@@ -19,6 +19,7 @@ createInertiaApp({
             case name === 'features':
             case name === 'about':
             case name === 'contact':
+            case name.startsWith('blogs/'):
                 return MarketingLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;

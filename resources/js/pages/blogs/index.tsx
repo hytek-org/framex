@@ -8,17 +8,7 @@ export default function BlogsIndex({ blogs }: { blogs: any }) {
         <div className="min-h-screen bg-background text-foreground">
             <Head title="Blog - Latest News & Insights" />
 
-            {/* Minimal Header */}
-            <header className="border-b surface-panel sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="font-bold text-xl text-primary tracking-tight">FrameX</Link>
-                    <nav className="flex gap-4">
-                        <Link href="/pricing" className="text-sm font-medium hover:text-primary transition-colors">Pricing</Link>
-                        <Link href="/features" className="text-sm font-medium hover:text-primary transition-colors">Features</Link>
-                        <Link href="/blogs" className="text-sm font-medium text-primary transition-colors">Blog</Link>
-                    </nav>
-                </div>
-            </header>
+
 
             {/* Hero Section */}
             <section className="relative py-24 overflow-hidden border-b gradient-mesh">
@@ -100,8 +90,8 @@ export default function BlogsIndex({ blogs }: { blogs: any }) {
                                     key={i}
                                     href={link.url || '#'}
                                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${link.active
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-muted hover:bg-muted/80 text-foreground'
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-muted hover:bg-muted/80 text-foreground'
                                         } ${!link.url && 'opacity-50 cursor-not-allowed'}`}
                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                 />
