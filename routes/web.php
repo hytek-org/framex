@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\NotificationCenterController;
@@ -21,6 +22,9 @@ Route::inertia('features', 'features')->name('features');
 Route::inertia('about', 'about')->name('about');
 Route::inertia('contact', 'contact')->name('contact');
 
+Route::get('blogs', [BlogController::class, 'publicIndex'])->name('blogs.index');
+Route::get('blogs/{slug}', [BlogController::class, 'publicShow'])->name('blogs.show');
+
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
@@ -29,6 +33,16 @@ Route::prefix('{current_team}')
         Route::get('files', [FileController::class, 'index'])->name('files.index');
         Route::post('files', [FileController::class, 'store'])->name('files.store');
         Route::delete('files/{file}', [FileController::class, 'destroy'])->name('files.destroy');
+
+        Route::prefix('manage/blogs')->name('manage.blogs.')->group(function () {
+            Route::get('/', [BlogController::class, 'index'])->name('index');
+            Route::get('/create', [BlogController::class, 'create'])->name('create');
+            Route::post('/', [BlogController::class, 'store'])->name('store');
+            Route::get('/{blog}', [BlogController::class, 'show'])->name('show');
+            Route::get('/{blog}/edit', [BlogController::class, 'edit'])->name('edit');
+            Route::put('/{blog}', [BlogController::class, 'update'])->name('update');
+            Route::delete('/{blog}', [BlogController::class, 'destroy'])->name('destroy');
+        });
     });
 
 Route::middleware(['auth'])->group(function () {
@@ -50,4 +64,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin', AdminController::class)->name('admin.index');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
