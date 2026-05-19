@@ -1,5 +1,5 @@
-import { Head, router } from '@inertiajs/react';
-import { Bell, BellOff, Check } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Bell, BellOff, Check, UserPlus } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FadeIn } from '@/components/shared/motion';
 import { PageHeader } from '@/components/shared/page-header';
@@ -36,30 +36,52 @@ export default function NotificationsIndex({ notifications }: Props) {
                 <FadeIn delay={0.15}>
                     {notifications.length > 0 ? (
                         <div className="space-y-2">
-                            {notifications.map((n) => (
-                                <div key={n.id} className={cn('flex items-start gap-4 rounded-xl border p-4', n.read_at ? 'bg-card opacity-70' : 'border-primary/10 bg-primary/[0.02]')}>
-                                    <div className={cn('mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', n.read_at ? 'bg-muted' : 'bg-primary/10')}>
-                                        <Bell className={cn('h-4 w-4', n.read_at ? 'text-muted-foreground' : 'text-primary')} />
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-sm font-medium">{n.title}</h3>
-                                            {!n.read_at && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                                        </div>
-                                        {n.body && <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>}
-                                        {n.action_url && (
-                                            <div className="mt-3">
-                                                <Button size="sm" variant="outline" asChild>
-                                                    <a href={n.action_url}>
-                                                        {n.title.includes('Invitation') ? 'Accept Invitation' : 'View'}
-                                                    </a>
-                                                </Button>
-                                            </div>
+                            {notifications.map((n) => {
+                                const isInvitation = n.title.toLowerCase().includes('invitation');
+                                return (
+                                    <div
+                                        key={n.id}
+                                        className={cn(
+                                            'flex items-start gap-4 rounded-xl border p-4 transition-all duration-200 hover:shadow-xs',
+                                            n.read_at
+                                                ? 'bg-card opacity-70'
+                                                : (isInvitation
+                                                    ? 'border-amber-500/20 bg-amber-500/2'
+                                                    : 'border-primary/10 bg-primary/2')
                                         )}
-                                        <p className="mt-1 text-xs text-muted-foreground/70">{n.created_at}</p>
+                                    >
+                                        <div className={cn(
+                                            'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                                            isInvitation
+                                                ? (n.read_at ? 'bg-amber-100/50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400' : 'bg-amber-500/10 text-amber-500')
+                                                : (n.read_at ? 'bg-muted' : 'bg-primary/10')
+                                        )}>
+                                            {isInvitation ? (
+                                                <UserPlus className="h-4 w-4" />
+                                            ) : (
+                                                <Bell className={cn('h-4 w-4', n.read_at ? 'text-muted-foreground' : 'text-primary')} />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-sm font-medium">{n.title}</h3>
+                                                {!n.read_at && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                                            </div>
+                                            {n.body && <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>}
+                                            {n.action_url && (
+                                                <div className="mt-3">
+                                                    <Button size="sm" variant={isInvitation ? 'default' : 'outline'} asChild>
+                                                        <Link href={n.action_url}>
+                                                            {isInvitation ? 'Accept Invitation' : 'View'}
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            <p className="mt-1 text-xs text-muted-foreground/70">{n.created_at}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <EmptyState icon={BellOff} title="All caught up" description="No notifications yet." />

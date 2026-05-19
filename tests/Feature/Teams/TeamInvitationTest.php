@@ -149,7 +149,7 @@ test('team invitations can be accepted', function () {
 
     $response = $this
         ->actingAs($invitedUser)
-        ->get(route('invitations.accept', $invitation));
+        ->post(route('invitations.accept', $invitation));
 
     $response->assertRedirect(route('dashboard'));
 
@@ -172,7 +172,7 @@ test('team invitations cannot be accepted by uninvited user', function () {
 
     $response = $this
         ->actingAs($uninvitedUser)
-        ->get(route('invitations.accept', $invitation));
+        ->post(route('invitations.accept', $invitation));
 
     $response->assertSessionHasErrors('invitation');
 
@@ -194,9 +194,101 @@ test('expired invitations cannot be accepted', function () {
 
     $response = $this
         ->actingAs($invitedUser)
-        ->get(route('invitations.accept', $invitation));
+        ->post(route('invitations.accept', $invitation));
 
     $response->assertSessionHasErrors('invitation');
 
     expect($invitedUser->fresh()->belongsToTeam($team))->toBeFalse();
+});
+
+test('newly registered user gets pending team invitations notifications', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    $invitation = TeamInvitation::factory()->create([
+        'team_id' => $team->id,
+        'email' => 'newuser@example.com',
+        'role' => TeamRole::Member,
+        'invited_by' => $owner->id,
+    ]);
+
+    $response = $this->post(route('register.store'), [
+        'name' => 'New User',
+        'email' => 'newuser@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $response->assertRedirect(route('dashboard'));
+
+    $user = User::where('email', 'newuser@example.com')->first();
+    expect($user)->not->toBeNull();
+
+    $notification = $user->notifications()->first();
+    expect($notification)->not->toBeNull();
+    expect($notification->type)->toBe(\App\Notifications\Teams\TeamInvitation::class);
+    expect($notification->data['invitation_code'])->toBe($invitation->code);
+});
+
+test('viewing team invitation marks database notification as read', function () {
+    $owner = User::factory()->create();
+    $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    $invitation = TeamInvitation::factory()->create([
+        'team_id' => $team->id,
+        'email' => 'invited@example.com',
+        'role' => TeamRole::Member,
+        'invited_by' => $owner->id,
+    ]);
+
+    $invitedUser->notify(new \App\Notifications\Teams\TeamInvitation($invitation));
+
+    expect($invitedUser->unreadNotifications()->count())->toBe(1);
+
+    $response = $this
+        ->actingAs($invitedUser)
+        ->get(route('invitations.show', $invitation));
+
+    $response->assertOk();
+
+    expect($invitedUser->unreadNotifications()->count())->toBe(0);
+});
+
+test('database notification is saved even if mail transport fails', function () {
+    $owner = User::factory()->create();
+    $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    // Mock Mailer factory/mailer to throw mail exception
+    $mockMailer = Mockery::mock(\Illuminate\Contracts\Mail\Mailer::class);
+    $mockMailer->shouldReceive('send')->andThrow(new \Symfony\Component\Mailer\Exception\TransportException('The "tls" scheme is not supported.'));
+    
+    $this->app->instance(\Illuminate\Contracts\Mail\Mailer::class, $mockMailer);
+    $this->app->instance(\Illuminate\Contracts\Mail\Factory::class, new class($mockMailer) implements \Illuminate\Contracts\Mail\Factory {
+        public function __construct(private $mailer) {}
+        public function mailer($name = null) { return $this->mailer; }
+    });
+
+    $response = $this
+        ->actingAs($owner)
+        ->post(route('teams.invitations.store', $team), [
+            'email' => 'invited@example.com',
+            'role' => TeamRole::Member->value,
+        ]);
+
+    // Should redirect successfully despite mail failure
+    $response->assertRedirect(route('teams.edit', $team));
+
+    // Verify invitation record is created
+    $this->assertDatabaseHas('team_invitations', [
+        'team_id' => $team->id,
+        'email' => 'invited@example.com',
+    ]);
+
+    // Verify database notification was still stored successfully for the invited user
+    expect($invitedUser->notifications()->count())->toBe(1);
 });

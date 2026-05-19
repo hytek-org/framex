@@ -8,10 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TeamInvitation extends Notification implements ShouldQueue
+class TeamInvitation extends Notification
 {
-    use Queueable;
-
     /**
      * Create a new notification instance.
      */
@@ -27,7 +25,7 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -35,8 +33,8 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $team = $this->invitation->team;
-        $inviter = $this->invitation->inviter;
+        $team = $this->invitation->team ?? $this->invitation->load('team')->team;
+        $inviter = $this->invitation->inviter ?? $this->invitation->load('inviter')->inviter;
 
         return (new MailMessage)
             ->subject(__("You've been invited to join :teamName", ['teamName' => $team->name]))
@@ -44,7 +42,9 @@ class TeamInvitation extends Notification implements ShouldQueue
                 'inviterName' => $inviter->name,
                 'teamName' => $team->name,
             ]))
-            ->action(__('Accept invitation'), url("/invitations/{$this->invitation->code}/accept"));
+            ->line(__('Role: :role', ['role' => $this->invitation->role->value]))
+            ->line($this->invitation->expires_at ? __('This invitation expires on :date', ['date' => $this->invitation->expires_at->format('F d, Y')]) : '')
+            ->action(__('Review invitation'), route('invitations.show', $this->invitation->code));
     }
 
     /**
@@ -54,8 +54,8 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $team = $this->invitation->team;
-        $inviter = $this->invitation->inviter;
+        $team = $this->invitation->team ?? $this->invitation->load('team')->team;
+        $inviter = $this->invitation->inviter ?? $this->invitation->load('inviter')->inviter;
 
         return [
             'title' => __('New Team Invitation'),
@@ -63,11 +63,16 @@ class TeamInvitation extends Notification implements ShouldQueue
                 'inviterName' => $inviter->name,
                 'teamName' => $team->name,
             ]),
-            'action_url' => url("/invitations/{$this->invitation->code}/accept"),
+            'action_url' => route('invitations.show', $this->invitation->code),
+            'action_label' => 'View Invitation',
             'invitation_id' => $this->invitation->id,
+            'invitation_code' => $this->invitation->code,
             'team_id' => $this->invitation->team_id,
             'team_name' => $team->name,
+            'inviter_name' => $inviter->name,
+            'inviter_email' => $inviter->email,
             'role' => $this->invitation->role->value,
+            'expires_at' => $this->invitation->expires_at,
         ];
     }
 }

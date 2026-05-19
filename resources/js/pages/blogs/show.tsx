@@ -93,7 +93,7 @@ export default function BlogShow({ blog, related }: { blog: any; related: any[] 
 
                 {/* Cover Image */}
                 {blog.cover_image && (
-                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-0">
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-0">
                         <div className="rounded-2xl overflow-hidden border shadow-xl mt-8 animate-fade-in-up stagger-3">
                             <img
                                 src={`/storage/${blog.cover_image}`}
