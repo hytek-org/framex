@@ -10,12 +10,13 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 
 class BlogController extends Controller
 {
     public function publicIndex(Request $request)
     {
-        $query = Blog::where('is_published', true)
+        $query = Blog::query()->where('is_published', true)
             ->with(['user', 'category', 'tags'])
             ->latest('published_at');
 
@@ -27,19 +28,19 @@ class BlogController extends Controller
         }
 
         $blogs = $query->paginate(12)->withQueryString();
-        $categories = Category::withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
-        $tags = Tag::withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
+        $categories = Category::query()->withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
+        $tags = Tag::query()->withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
 
         return Inertia::render('blogs/index', compact('blogs', 'categories', 'tags'));
     }
 
-    public function publicShow($slug)
+    public function publicShow(string $slug)
     {
-        $blog = Blog::where('slug', $slug)->where('is_published', true)
+        $blog = Blog::query()->where('slug', $slug)->where('is_published', true)
             ->with(['user', 'category', 'tags'])
             ->firstOrFail();
 
-        $related = Blog::where('is_published', true)
+        $related = Blog::query()->where('is_published', true)
             ->where('id', '!=', $blog->id)
             ->where('category_id', $blog->category_id)
             ->with(['user', 'category'])
@@ -52,26 +53,27 @@ class BlogController extends Controller
 
     public function index()
     {
-        $blogs = Blog::where('team_id', Auth::user()->current_team_id)
+        $blogs = Blog::query()->where('team_id', Auth::user()->current_team_id)
             ->with(['user', 'category', 'tags'])
             ->latest()
             ->paginate(15);
+            
         return Inertia::render('manage/blogs/index', ['blogs' => $blogs]);
     }
 
     public function create()
     {
-        abort_unless(Auth::user()->can('create', Blog::class), 403);
+        Gate::authorize('create', Blog::class);
 
         return Inertia::render('manage/blogs/create', [
-            'categories' => Category::orderBy('name')->get(),
-            'tags' => Tag::orderBy('name')->get(),
+            'categories' => Category::query()->orderBy('name')->get(),
+            'tags'       => Tag::query()->orderBy('name')->get(),
         ]);
     }
 
     public function store(Request $request)
     {
-        abort_unless(Auth::user()->can('create', Blog::class), 403);
+        Gate::authorize('create', Blog::class);
 
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
@@ -91,7 +93,7 @@ class BlogController extends Controller
             $imagePath = $request->file('cover_image')->store('blogs', 'public');
         }
 
-        $blog = Blog::create([
+        $blog = Blog::query()->create([
             'title'        => $validated['title'],
             'slug'         => $slug,
             'excerpt'      => $validated['excerpt'] ?? null,
@@ -111,29 +113,31 @@ class BlogController extends Controller
         return redirect()->back()->with('success', 'Blog post created successfully.');
     }
 
-    public function show($current_team, Blog $blog)
+    public function show(string $current_team, Blog $blog)
     {
-        abort_unless(Auth::user()->can('view', $blog), 403);
+        Gate::authorize('view', $blog);
 
         $blog->load(['user', 'category', 'tags']);
+        
         return Inertia::render('manage/blogs/show', ['blog' => $blog]);
     }
 
-    public function edit($current_team, Blog $blog)
+    public function edit(string $current_team, Blog $blog)
     {
-        abort_unless(Auth::user()->can('update', $blog), 403);
+        Gate::authorize('update', $blog);
 
         $blog->load(['tags']);
+        
         return Inertia::render('manage/blogs/edit', [
             'blog'       => $blog,
-            'categories' => Category::orderBy('name')->get(),
-            'tags'       => Tag::orderBy('name')->get(),
+            'categories' => Category::query()->orderBy('name')->get(),
+            'tags'       => Tag::query()->orderBy('name')->get(),
         ]);
     }
 
-    public function update(Request $request, $current_team, Blog $blog)
+    public function update(Request $request, string $current_team, Blog $blog)
     {
-        abort_unless(Auth::user()->can('update', $blog), 403);
+        Gate::authorize('update', $blog);
 
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
@@ -151,7 +155,9 @@ class BlogController extends Controller
         }
 
         if ($request->hasFile('cover_image')) {
-            if ($blog->cover_image) \Illuminate\Support\Facades\Storage::disk('public')->delete($blog->cover_image);
+            if ($blog->cover_image) {
+                Storage::disk('public')->delete($blog->cover_image);
+            }
             $blog->cover_image = $request->file('cover_image')->store('blogs', 'public');
         }
 
@@ -169,25 +175,33 @@ class BlogController extends Controller
 
         $blog->tags()->sync($validated['tag_ids'] ?? []);
 
-        return redirect()->route('manage.blogs.index', ['current_team' => $current_team])->with('success', 'Blog post updated successfully.');
+        return redirect()->route('manage.blogs.index', ['current_team' => $current_team])
+            ->with('success', 'Blog post updated successfully.');
     }
 
-    public function destroy($current_team, Blog $blog)
+    public function destroy(string $current_team, Blog $blog)
     {
-        abort_unless(Auth::user()->can('delete', $blog), 403);
+        Gate::authorize('delete', $blog);
 
-        if ($blog->cover_image) \Illuminate\Support\Facades\Storage::disk('public')->delete($blog->cover_image);
-        $blog->tags()->detach();
+        if ($blog->cover_image) {
+            Storage::disk('public')->delete($blog->cover_image);
+        }
+        
+        $blog->tags()->sync([]);
         $blog->delete();
+        
         return redirect()->back()->with('success', 'Blog post deleted.');
     }
 
     private function uniqueSlug(string $slug, ?int $ignoreId = null): string
     {
-        $orig = $slug; $i = 1;
-        while (Blog::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+        $orig = $slug; 
+        $i = 1;
+        
+        while (Blog::query()->where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
             $slug = $orig . '-' . $i++;
         }
+        
         return $slug;
     }
 }
