@@ -1,22 +1,19 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { BreadcrumbItem } from '@/types';
+import { ArrowLeft, Save, Loader2, ImagePlus, Tag, FolderOpen, X, BookOpen } from 'lucide-react';
+import { useState } from 'react';
+import { RichTextEditor } from '@/components/rich-text-editor';
 import { Button } from '@/components/ui/button';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Save, Loader2, ImagePlus, Tag, FolderOpen, X, BookOpen } from 'lucide-react';
-import { RichTextEditor } from '@/components/rich-text-editor';
-import { useState } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+
 
 export default function BlogEdit({ blog, categories, tags }: { blog: any; categories: any[]; tags: any[] }) {
     const { currentTeam } = usePage().props as any;
     const tp = currentTeam?.slug ? `/${currentTeam.slug}` : '';
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Blog Management', href: `${tp}/manage/blogs` },
-        { title: 'Edit Post', href: '#' },
-    ];
 
     const [form, setForm] = useState({
         title: blog.title || '',
@@ -46,6 +43,7 @@ export default function BlogEdit({ blog, categories, tags }: { blog: any; catego
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+
         if (file) {
             setData('cover_image', file);
             const reader = new FileReader();
@@ -60,6 +58,7 @@ export default function BlogEdit({ blog, categories, tags }: { blog: any; catego
             : [...form.tag_ids, id]
         );
     };
+
 
     return (
         <>
@@ -77,7 +76,7 @@ export default function BlogEdit({ blog, categories, tags }: { blog: any; catego
                                 <BookOpen className="h-4 w-4 text-primary" />
                                 <h1 className="text-base font-bold">Edit Post</h1>
                             </div>
-                            <p className="text-xs text-muted-foreground truncate max-w-[240px]">{blog.title}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-60">{blog.title}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -150,7 +149,10 @@ export default function BlogEdit({ blog, categories, tags }: { blog: any; catego
                                             <img src={imagePreview} className="w-full aspect-video object-cover" alt="" />
                                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                 <Button type="button" size="sm" variant="secondary" onClick={() => document.getElementById('edit_cover')?.click()}>Change</Button>
-                                                <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => { setImagePreview(null); setData('cover_image', null); }}>
+                                                <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => {
+                                                    setImagePreview(null);
+                                                    setData('cover_image', null);
+                                                }}>
                                                     <X className="h-3.5 w-3.5" />
                                                 </Button>
                                             </div>
@@ -205,6 +207,7 @@ export default function BlogEdit({ blog, categories, tags }: { blog: any; catego
                                     <div className="flex flex-wrap gap-1.5">
                                         {tags.map((tag: any) => {
                                             const active = form.tag_ids.includes(tag.id);
+
                                             return (
                                                 <button
                                                     key={tag.id}

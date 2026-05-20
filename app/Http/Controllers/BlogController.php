@@ -66,8 +66,8 @@ class BlogController extends Controller
         Gate::authorize('create', Blog::class);
 
         return Inertia::render('manage/blogs/create', [
-            'categories' => Category::query()->orderBy('name')->get(),
-            'tags'       => Tag::query()->orderBy('name')->get(),
+            'categories' => Category::query()->orderBy('name', 'asc')->get(),
+            'tags'       => Tag::query()->orderBy('name', 'asc')->get(),
         ]);
     }
 
@@ -110,7 +110,7 @@ class BlogController extends Controller
             $blog->tags()->sync($validated['tag_ids']);
         }
 
-        return redirect()->back()->with('success', 'Blog post created successfully.');
+        return redirect()->route('manage.blogs.index')->with('success', 'Blog post created successfully.');
     }
 
     public function show(string $current_team, Blog $blog)
@@ -130,8 +130,8 @@ class BlogController extends Controller
         
         return Inertia::render('manage/blogs/edit', [
             'blog'       => $blog,
-            'categories' => Category::query()->orderBy('name')->get(),
-            'tags'       => Tag::query()->orderBy('name')->get(),
+            'categories' => Category::query()->orderBy('name', 'asc')->get(),
+            'tags'       => Tag::query()->orderBy('name', 'asc')->get(),
         ]);
     }
 
@@ -188,7 +188,7 @@ class BlogController extends Controller
         }
         
         $blog->tags()->sync([]);
-        $blog->delete();
+        Blog::destroy($blog->id);
         
         return redirect()->back()->with('success', 'Blog post deleted.');
     }
