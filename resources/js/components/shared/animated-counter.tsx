@@ -19,16 +19,54 @@ export function AnimatedCounter({
     className,
 }: AnimatedCounterProps) {
     const [displayValue, setDisplayValue] = useState(0);
+    const [isInView, setIsInView] = useState(false);
+    
+    const counterRef = useRef<HTMLSpanElement>(null);
     const startRef = useRef<number | null>(null);
     const rafRef = useRef<number | null>(null);
 
+    // 1. Observe when the component scrolls into the viewport
     useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsInView(true);
+                    // Disconnect after triggering once so it doesn't restart on scroll up/down
+
+                    if (counterRef.current) {
+                        observer.unobserve(counterRef.current);
+                    }
+                }
+            },
+            { threshold: 0.1 } // Triggers when at least 10% of the element is visible
+        );
+
+        const currentElement = counterRef.current;
+
+        if (currentElement) {
+            observer.observe(currentElement);
+        }
+
+        return () => {
+            if (currentElement) {
+                observer.unobserve(currentElement);
+            }
+        };
+    }, []);
+
+    // 2. Run the animation ONLY when isInView becomes true
+    useEffect(() => {
+        if (!isInView) {
+            return; // Wait until it's on screen
+        }
+
         startRef.current = null;
 
         const animate = (timestamp: number) => {
             if (startRef.current === null) {
                 startRef.current = timestamp;
             }
+
             const progress = Math.min(
                 (timestamp - startRef.current) / duration,
                 1,
@@ -50,7 +88,7 @@ export function AnimatedCounter({
                 cancelAnimationFrame(rafRef.current);
             }
         };
-    }, [value, duration]);
+    }, [value, duration, isInView]);
 
     const formatted = displayValue.toFixed(decimals);
     const parts = formatted.split('.');
@@ -58,7 +96,7 @@ export function AnimatedCounter({
     const decPart = parts[1];
 
     return (
-        <span className={cn('tabular-nums', className)}>
+        <span ref={counterRef} className={cn('tabular-nums', className)}>
             {prefix}
             {intPart}
             {decimals > 0 && `.${decPart}`}

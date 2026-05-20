@@ -1,4 +1,5 @@
-import { motion, type MotionProps } from 'motion/react';
+import { motion } from 'motion/react';
+import type { MotionProps } from 'motion/react';
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -7,13 +8,14 @@ type FadeInProps = ComponentProps<'div'> & {
     delay?: number;
     duration?: number;
     direction?: 'up' | 'down' | 'left' | 'right' | 'none';
+    viewportMargin?: string;
 };
 
 const directionMap = {
-    up: { y: 16 },
-    down: { y: -16 },
-    left: { x: 16 },
-    right: { x: -16 },
+    up: { y: 24 },
+    down: { y: -24 },
+    left: { x: 24 },
+    right: { x: -24 },
     none: {},
 };
 
@@ -21,18 +23,20 @@ export function FadeIn({
     children,
     className,
     delay = 0,
-    duration = 0.5,
+    duration = 0.7,
     direction = 'up',
+    viewportMargin = '-50px',
     ...props
 }: FadeInProps) {
     return (
         <motion.div
             initial={{ opacity: 0, ...directionMap[direction] }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, margin: viewportMargin }}
             transition={{
                 duration,
                 delay,
-                ease: [0.21, 0.47, 0.32, 0.98],
+                ease: [0.21, 0.47, 0.32, 0.98], // Apple-style custom cubic-bezier
             }}
             className={className}
             {...(props as MotionProps)}
@@ -46,19 +50,22 @@ export function FadeIn({
 type StaggerProps = ComponentProps<'div'> & {
     staggerDelay?: number;
     initialDelay?: number;
+    viewportMargin?: string;
 };
 
 export function StaggerChildren({
     children,
     className,
-    staggerDelay = 0.05,
+    staggerDelay = 0.1,
     initialDelay = 0,
+    viewportMargin = '-50px',
     ...props
 }: StaggerProps) {
     return (
         <motion.div
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true, margin: viewportMargin }}
             variants={{
                 visible: {
                     transition: {
@@ -84,12 +91,12 @@ export function StaggerItem({
     return (
         <motion.div
             variants={{
-                hidden: { opacity: 0, y: 12 },
+                hidden: { opacity: 0, y: 20 },
                 visible: {
                     opacity: 1,
                     y: 0,
                     transition: {
-                        duration: 0.4,
+                        duration: 0.6,
                         ease: [0.21, 0.47, 0.32, 0.98],
                     },
                 },
@@ -112,9 +119,10 @@ export function ScaleIn({
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-50px' }}
             transition={{
-                duration: 0.3,
+                duration: 0.5,
                 delay,
                 ease: [0.21, 0.47, 0.32, 0.98],
             }}
@@ -127,6 +135,8 @@ export function ScaleIn({
 }
 
 // ── Page Transition Wrapper ──────────────────────────────
+// Notice this one STILL uses `animate` instead of `whileInView` 
+// because you want page transitions to happen immediately on mount.
 export function PageTransition({
     children,
     className,
@@ -139,7 +149,7 @@ export function PageTransition({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-                duration: 0.35,
+                duration: 0.4,
                 ease: [0.21, 0.47, 0.32, 0.98],
             }}
             className={cn('h-full', className)}

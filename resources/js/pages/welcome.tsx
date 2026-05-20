@@ -1,16 +1,17 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
-    BarChart3,
-    Bell,
+    ChevronRight,
     CreditCard,
+    Fingerprint,
     Key,
     LayoutGrid,
+    Lock,
+    Search,
     Shield,
+    Terminal,
     Users,
     Zap,
-    ChevronRight,
-    Sparkles,
 } from 'lucide-react';
 import { AnimatedCounter } from '@/components/shared/animated-counter';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
@@ -18,245 +19,212 @@ import { Button } from '@/components/ui/button';
 import { register } from '@/routes';
 
 /* ──────────────────────────────────────────────────────────
-   FEATURES DATA
+   STATS & STEPS
    ────────────────────────────────────────────────────────── */
-const features = [
-    {
-        icon: Users,
-        title: 'Teams & Organizations',
-        description: 'Multi-tenant workspace system with role-based access control, granular permissions, and seamless team switching built right into the core.',
-        className: 'md:col-span-2 lg:col-span-2',
-    },
-    {
-        icon: Shield,
-        title: 'Authentication',
-        description: 'Complete auth flow with 2FA, biometric support, and social logins.',
-        className: 'md:col-span-1 lg:col-span-1',
-    },
-    {
-        icon: CreditCard,
-        title: 'Subscription Billing',
-        description: 'Stripe-powered billing with plan management and customer portals.',
-        className: 'md:col-span-1 lg:col-span-1',
-    },
-    {
-        icon: BarChart3,
-        title: 'Analytics Dashboard',
-        description: 'Beautiful charts, realtime metrics, and activity feeds to monitor your product health at a glance.',
-        className: 'md:col-span-2 lg:col-span-2',
-    },
-    {
-        icon: Key,
-        title: 'API Tokens',
-        description: 'Sanctum-powered API token management with scoped permissions for developer integrations.',
-        className: 'md:col-span-1 lg:col-span-1',
-    },
-    {
-        icon: Bell,
-        title: 'Real-time Operations',
-        description: 'WebSocket-powered live updates via Laravel Reverb with a fully integrated in-app notification center.',
-        className: 'md:col-span-1 lg:col-span-1',
-    },
-];
-
 const stats = [
-    { label: 'Trusted Teams', value: 5200, suffix: '+' },
-    { label: 'Launches', value: 2800, suffix: '+' },
-    { label: 'API Requests', value: 120, suffix: 'M+' },
-    { label: 'Uptime', value: 99.95, suffix: '%', decimals: 2 },
+    { label: 'Organizations', value: 12500, suffix: '+' },
+    { label: 'API Requests', value: 950, suffix: 'M+' },
+    { label: 'Uptime SLA', value: 99.99, suffix: '%', decimals: 2 },
+    { label: 'Global Edge Nodes', value: 145, suffix: '' },
 ];
 
 const steps = [
     {
         step: '01',
-        title: 'Design the Experience',
-        description: 'Start with a polished, premium UI that makes first impressions count and converts visitors into active users.',
+        title: 'Clone & Configure',
+        description: 'Pull the repository, run the setup command, and let FrameX scaffold your complete authentication, billing, and team infrastructure.',
     },
     {
         step: '02',
-        title: 'Deploy Modern Stack',
-        description: 'Laravel 12, React 19, Inertia, and highly optimized front-end assets, instantly ready for production environments.',
+        title: 'Build Your Logic',
+        description: 'Stop wrestling with boilerplate. Focus entirely on your unique business logic inside a perfectly structured Laravel and React monolith.',
     },
     {
         step: '03',
-        title: 'Scale Confidently',
-        description: 'Built-in billing, robust teams, and real-time analytics designed specifically for high-growth SaaS applications.',
+        title: 'Deploy to Edge',
+        description: 'Push to production with absolute confidence. Integrated CI/CD pipelines and highly optimized assets ensure sub-second global load times.',
     },
 ];
 
 /* ──────────────────────────────────────────────────────────
-   PAGE
+   PAGE COMPONENT
    ────────────────────────────────────────────────────────── */
 export default function Welcome() {
     const { auth } = usePage().props;
 
     return (
         <>
-            <Head title="Build SaaS Products Faster | FrameX" />
+            <Head title="FrameX | Enterprise SaaS Foundation" />
 
-            <div className="relative min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+            <div className="relative min-h-screen bg-white text-zinc-950 dark:bg-[#050505] dark:text-[#FAFAFA] selection:bg-black/10 selection:text-black dark:selection:bg-white/20 dark:selection:text-white overflow-hidden font-sans transition-colors duration-300">
                 
-                {/* ── SUBTLE BACKGROUND EFFECTS (Apple-like purity) ── */}
-                <div className="pointer-events-none fixed inset-0 flex justify-center bg-background">
-                    <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px]" />
-                    <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 blur-[120px]" />
+                {/* ── AMBIENT LIGHTING & NOISE TEXTURE ── */}
+                <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
+                    <div className="absolute top-[-20%] left-1/2 h-[800px] w-[1200px] -translate-x-1/2 rounded-[100%] bg-gradient-to-b from-black/[0.02] to-transparent blur-[120px] dark:from-white/[0.04]" />
+                    <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-black/[0.01] to-transparent dark:from-white/[0.02]" />
+                    {/* Ultra-subtle noise overlay */}
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.035] mix-blend-overlay"></div>
                 </div>
 
-                <div className="relative z-10 space-y-0 pb-20">
+                <div className="relative z-10">
                     
                     {/* ── HERO ─────────────────────────────── */}
-                    <section className="relative overflow-hidden pt-32 pb-24 md:pt-48 md:pb-32">
-                        <div className="relative mx-auto max-w-300 px-6 text-center">
+                    <section className="relative pt-36 pb-20 md:pt-48 md:pb-32">
+                        <div className="mx-auto max-w-[1200px] px-6 text-center">
                             
-                            <FadeIn delay={0.1}>
-                                <div className="mx-auto mb-10 inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/50 px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm backdrop-blur-xl transition-all hover:bg-background/80 hover:shadow-md">
-                                    <span className="relative flex h-1.5 w-1.5">
-                                        <span className="absolute inline-flex h-full w-full rounded-full bg-primary/60 opacity-75"></span>
-                                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary"></span>
+                            <FadeIn delay={0.1} direction="down">
+                                <div className="mx-auto mb-8 inline-flex items-center gap-3 rounded-full border border-black/10 bg-black/5 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-zinc-600 shadow-[0_2px_20px_rgba(0,0,0,0.02)] backdrop-blur-xl transition-colors hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:shadow-[0_2px_20px_rgba(255,255,255,0.02)] dark:hover:bg-white/10">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75 dark:bg-blue-400"></span>
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-500"></span>
                                     </span>
-                                    <span className="text-foreground">Laravel 13 + React 19 + Inertia.js</span>
-                                    <ChevronRight className="ml-1 h-3.5 w-3.5 text-muted-foreground/60" />
+                                    <span>FrameX 2.0 is now available</span>
+                                    <ChevronRight className="h-3 w-3 text-zinc-400 dark:text-white/40" />
                                 </div>
                             </FadeIn>
 
                             <FadeIn delay={0.2}>
-                                <h1 className="text-5xl font-semibold tracking-tighter sm:text-7xl md:text-8xl">
-                                    Launch premium SaaS
-                                    <br className="hidden sm:block" />
-                                    <span className="bg-linear-to-br from-foreground to-foreground/50 bg-clip-text text-transparent"> at lightspeed.</span>
+                                <h1 className="mx-auto max-w-5xl text-5xl font-medium tracking-tighter sm:text-7xl md:text-8xl lg:text-[7.5rem] leading-[0.95]">
+                                    The foundation for <br className="hidden sm:block" />
+                                    <span className="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-400 bg-clip-text text-transparent dark:from-white dark:via-white/90 dark:to-white/30">
+                                        your life's work.
+                                    </span>
                                 </h1>
                             </FadeIn>
 
                             <FadeIn delay={0.3}>
-                                <p className="mx-auto mt-8 max-w-2xl text-lg font-medium leading-relaxed text-muted-foreground sm:text-xl">
-                                    FrameX is a world-class Laravel + React starter kit engineered for performance, reliability, and scale. Ship an enterprise-grade platform this weekend.
+                                <p className="mx-auto mt-8 max-w-2xl text-lg font-normal leading-relaxed text-zinc-500 tracking-tight sm:text-xl dark:text-white/50">
+                                    A world-class Laravel and React framework engineered for scale. Bypass months of boilerplate and launch enterprise-grade SaaS this weekend.
                                 </p>
                             </FadeIn>
 
                             <FadeIn delay={0.4}>
-                                <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                                <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                                     {auth?.user ? (
-                                        <Button size="lg" asChild className="h-14 rounded-full bg-foreground px-8 text-base font-medium text-background shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all hover:scale-[1.02] hover:bg-foreground/90 hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.1)]">
+                                        <Button size="lg" asChild className="group h-12 rounded-full bg-zinc-900 px-8 text-sm font-medium text-white transition-all hover:scale-[1.02] hover:bg-zinc-800 hover:shadow-[0_0_40px_-10px_rgba(0,0,0,0.3)] dark:bg-white dark:text-black dark:hover:bg-white/90 dark:hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
                                             <Link href="/dashboard">
-                                                Go to Dashboard
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                Enter Workspace
+                                                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                             </Link>
                                         </Button>
                                     ) : (
                                         <>
-                                            <Button size="lg" asChild className="h-14 rounded-full bg-foreground px-8 text-base font-medium text-background shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all hover:scale-[1.02] hover:bg-foreground/90 hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.1)]">
+                                            <Button size="lg" asChild className="group h-12 rounded-full bg-zinc-900 px-8 text-sm font-medium text-white transition-all hover:scale-[1.02] hover:bg-zinc-800 hover:shadow-[0_0_40px_-10px_rgba(0,0,0,0.3)] dark:bg-white dark:text-black dark:hover:bg-white/90 dark:hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
                                                 <Link href={register()}>
-                                                    Start Your Free Trial
+                                                    Start Building
+                                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                                 </Link>
                                             </Button>
                                             <Button
                                                 size="lg"
                                                 variant="outline"
                                                 asChild
-                                                className="h-14 rounded-full border-border bg-background/50 px-8 text-base font-medium backdrop-blur-xl transition-all hover:bg-muted"
+                                                className="h-12 rounded-full border-black/10 bg-black/5 px-8 text-sm font-medium text-zinc-900 backdrop-blur-xl transition-all hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                                             >
-                                                <a href="/pricing">
-                                                    Explore Pricing
-                                                </a>
+                                                <a href="/docs">Read Documentation</a>
                                             </Button>
                                         </>
                                     )}
                                 </div>
                             </FadeIn>
 
-                            {/* ── DASHBOARD PREVIEW (Premium macOS Style) ──────────────── */}
+                            {/* ── 3D DASHBOARD COMPOSITION ──────────────── */}
                             <FadeIn delay={0.6}>
-                                <div className="relative mx-auto mt-28 max-w-250 perspective-[2000px]">
-                                    <div className="absolute -inset-2 rounded-[2.5rem] bg-linear-to-b from-primary/10 via-transparent to-transparent opacity-50 blur-2xl" />
-                                    
-                                    <div className="relative overflow-hidden rounded-4xl border border-border/60 bg-background/80 shadow-[0_20px_50px_rgba(8,112,184,0.07)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-700 hover:rotate-x-0 hover:scale-[1.01]" style={{ transform: 'rotateX(2deg)' }}>
-                                        
-                                        {/* Browser / macOS Header */}
-                                        <div className="flex items-center justify-between border-b border-border/40 bg-muted/30 px-5 py-4 backdrop-blur-md">
+                                <div className="relative mx-auto mt-24 max-w-[1000px] perspective-[2000px]">
+                                    {/* Command Palette Floating Element (Depth Layer 3) */}
+                                    <div className="absolute -top-6 left-1/2 z-30 flex w-[400px] -translate-x-1/2 items-center gap-3 rounded-2xl border border-black/10 bg-white/90 px-4 py-3 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-transform duration-700 hover:scale-105 hover:-translate-y-2 dark:border-white/10 dark:bg-[#111]/90 dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)]">
+                                        <Search className="h-4 w-4 text-zinc-400 dark:text-white/40" />
+                                        <div className="text-sm font-medium text-zinc-500 dark:text-white/40">Search commands, users, or settings...</div>
+                                        <div className="ml-auto flex gap-1">
+                                            <kbd className="rounded bg-black/5 px-1.5 py-0.5 font-sans text-[10px] font-medium text-zinc-400 dark:bg-white/10 dark:text-white/60">⌘</kbd>
+                                            <kbd className="rounded bg-black/5 px-1.5 py-0.5 font-sans text-[10px] font-medium text-zinc-400 dark:bg-white/10 dark:text-white/60">K</kbd>
+                                        </div>
+                                    </div>
+
+                                    {/* Main App Window (Depth Layer 1) */}
+                                    <div 
+                                        className="relative z-10 overflow-hidden rounded-[24px] border border-black/10 bg-white shadow-[0_30px_60px_rgba(0,0,0,0.12)] transition-transform duration-1000 ease-out hover:rotate-x-0 dark:border-white/10 dark:bg-[#0A0A0A] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_30px_60px_rgba(0,0,0,0.6)]"
+                                        style={{ transform: 'rotateX(5deg)' }}
+                                    >
+                                        {/* macOS Header */}
+                                        <div className="flex h-12 items-center border-b border-black/5 bg-black/[0.02] px-4 backdrop-blur-md dark:border-white/5 dark:bg-white/[0.02]">
                                             <div className="flex gap-2">
-                                                <div className="h-3 w-3 rounded-full bg-[#FF5F56] shadow-sm" />
-                                                <div className="h-3 w-3 rounded-full bg-[#FFBD2E] shadow-sm" />
-                                                <div className="h-3 w-3 rounded-full bg-[#27C93F] shadow-sm" />
+                                                <div className="h-3 w-3 rounded-full bg-black/20 transition-colors hover:bg-[#FF5F56] dark:bg-white/20" />
+                                                <div className="h-3 w-3 rounded-full bg-black/20 transition-colors hover:bg-[#FFBD2E] dark:bg-white/20" />
+                                                <div className="h-3 w-3 rounded-full bg-black/20 transition-colors hover:bg-[#27C93F] dark:bg-white/20" />
                                             </div>
-                                            <div className="flex h-8 w-full max-w-md items-center justify-center gap-2 rounded-md bg-background/60 text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-border/50 backdrop-blur-xl">
-                                                <Shield className="h-3.5 w-3.5 text-foreground/40" />
-                                                <span className="opacity-80">app.framex.dev</span>
+                                            <div className="mx-auto flex h-6 w-64 items-center justify-center rounded-md bg-black/5 text-[11px] font-medium tracking-wide text-zinc-500 ring-1 ring-black/5 dark:bg-white/5 dark:text-white/40 dark:ring-white/5">
+                                                <Lock className="mr-1.5 h-3 w-3 text-zinc-400 dark:text-white/30" />
+                                                framex.dev/workspace
                                             </div>
-                                            <div className="w-13" /> {/* Spacer */}
                                         </div>
 
-                                        {/* App UI */}
-                                        <div className="grid grid-cols-12 bg-background/40">
-                                            {/* Mini sidebar */}
-                                            <div className="col-span-3 hidden border-r border-border/40 bg-background/50 p-6 md:block">
-                                                <div className="mb-8 flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-b from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20">
+                                        {/* App Body */}
+                                        <div className="grid h-[600px] grid-cols-12 bg-white dark:bg-[#050505]">
+                                            {/* Sidebar */}
+                                            <div className="col-span-3 hidden border-r border-black/5 bg-zinc-50 p-5 md:block dark:border-white/5 dark:bg-[#0A0A0A]">
+                                                <div className="mb-8 flex items-center gap-3 px-2">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:bg-white dark:text-black dark:shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                                                         <Zap className="h-4 w-4" />
                                                     </div>
-                                                    <span className="text-base font-semibold tracking-tight">FrameX</span>
+                                                    <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">Acme Corp</span>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-3 rounded-lg bg-foreground px-3 py-2.5 text-sm font-medium text-background transition-colors">
-                                                        <LayoutGrid className="h-4 w-4" />
-                                                        Dashboard
+                                                <div className="space-y-0.5 text-sm font-medium">
+                                                    <div className="flex items-center gap-3 rounded-lg bg-black/5 px-3 py-2 text-zinc-900 dark:bg-white/10 dark:text-white">
+                                                        <LayoutGrid className="h-4 w-4" /> Dashboard
                                                     </div>
-                                                    {['Analytics', 'Customers', 'Billing', 'Settings'].map((item) => (
-                                                        <div key={item} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted/80 hover:text-foreground">
-                                                            <div className="h-4 w-4 rounded-md border border-muted-foreground/30" />
-                                                            {item}
+                                                    {['Customers', 'Revenue', 'Analytics', 'Settings'].map((item) => (
+                                                        <div key={item} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-zinc-500 transition-colors hover:bg-black/5 hover:text-zinc-900 dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white">
+                                                            <div className="h-4 w-4 rounded border border-black/10 dark:border-white/20" /> {item}
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
 
-                                            {/* Dashboard Content */}
-                                            <div className="col-span-12 space-y-6 p-6 md:col-span-9 lg:p-10">
-                                                <div className="flex flex-col gap-1">
-                                                    <h3 className="text-2xl font-semibold tracking-tight">Overview</h3>
-                                                    <p className="text-sm text-muted-foreground">Your business metrics for the last 30 days.</p>
+                                            {/* Content */}
+                                            <div className="col-span-12 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-[length:100px_100px] p-8 opacity-[0.98] md:col-span-9">
+                                                <div className="mb-8 flex items-end justify-between">
+                                                    <div>
+                                                        <h3 className="text-2xl font-medium tracking-tight text-zinc-900 dark:text-white">Revenue Overview</h3>
+                                                        <p className="mt-1 text-sm text-zinc-500 dark:text-white/40">Metrics for the last 30 days.</p>
+                                                    </div>
                                                 </div>
 
-                                                {/* Metric cards */}
-                                                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                                                    {[
-                                                        { label: 'Revenue', value: '$24,892', change: '+12.5%', isUp: true },
-                                                        { label: 'Active Users', value: '2,418', change: '+8.2%', isUp: true },
-                                                        { label: 'Conversion', value: '7.2%', change: '+2.4%', isUp: true },
-                                                        { label: 'Churn Rate', value: '1.9%', change: '-0.6%', isUp: false },
-                                                    ].map((m) => (
-                                                        <div key={m.label} className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/40 bg-background/50 p-5 shadow-sm backdrop-blur-xl transition-all hover:bg-background/80 hover:shadow-md">
-                                                            <div className="text-sm font-medium text-muted-foreground">{m.label}</div>
-                                                            <div className="mt-4 flex items-baseline gap-2">
-                                                                <div className="text-2xl font-semibold tracking-tight text-foreground">{m.value}</div>
-                                                            </div>
-                                                            <div className="mt-2 flex items-center gap-1">
-                                                                <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${m.isUp ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
-                                                                    {m.change}
-                                                                </span>
-                                                                <span className="text-xs text-muted-foreground">vs last month</span>
+                                                {/* Mini Metric Grid */}
+                                                <div className="mb-8 grid grid-cols-3 gap-4">
+                                                    {['Total MRR', 'Active Users', 'Conversion'].map((label, i) => (
+                                                        <div key={label} className="rounded-xl border border-black/5 bg-black/[0.02] p-5 backdrop-blur-md dark:border-white/5 dark:bg-white/[0.02]">
+                                                            <div className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-white/40">{label}</div>
+                                                            <div className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+                                                                {i === 0 ? '$124.5k' : i === 1 ? '1,024' : '4.2%'}
                                                             </div>
                                                         </div>
                                                     ))}
                                                 </div>
 
-                                                {/* Clean Chart Area */}
-                                                <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-background/50 p-6 shadow-sm backdrop-blur-xl">
-                                                    <div className="mb-8 flex items-center justify-between">
-                                                        <div className="text-base font-semibold tracking-tight">Revenue Growth</div>
-                                                        <div className="h-6 w-24 rounded-full bg-muted/50" />
-                                                    </div>
-                                                    <div className="flex h-40 items-end gap-2 sm:gap-3">
-                                                        {[35, 45, 40, 60, 50, 75, 65, 80, 70, 85, 80, 100].map((h, i) => (
-                                                            <div key={i} className="group relative flex flex-1 items-end">
-                                                                <div 
-                                                                    className={`w-full rounded-t-sm transition-all duration-500 group-hover:bg-primary/80 ${i === 11 ? 'bg-primary' : 'bg-primary/20'}`} 
-                                                                    style={{ height: `${h}%` }} 
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                                {/* Chart Skeleton */}
+                                                <div className="flex h-64 w-full items-end gap-3 rounded-xl border border-black/5 bg-black/[0.02] p-6 backdrop-blur-md dark:border-white/5 dark:bg-white/[0.02]">
+                                                    {[40, 55, 45, 70, 65, 85, 75, 90, 80, 100].map((h, i) => (
+                                                        <div key={i} className="group relative flex flex-1 items-end">
+                                                            <div 
+                                                                className={`w-full rounded-t-sm transition-colors duration-500 ${i === 9 ? 'bg-zinc-900 dark:bg-white' : 'bg-black/10 group-hover:bg-black/20 dark:bg-white/10 dark:group-hover:bg-white/20'}`} 
+                                                                style={{ height: `${h}%` }} 
+                                                            />
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Floating Notification (Depth Layer 2) */}
+                                    <div className="absolute -right-8 -bottom-8 z-20 flex items-start gap-4 rounded-2xl border border-black/10 bg-white/90 p-4 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-transform duration-700 hover:-translate-x-2 hover:-translate-y-2 dark:border-white/10 dark:bg-[#111]/90 dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)]">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                            <CreditCard className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-medium text-zinc-900 dark:text-white">New Enterprise Plan</div>
+                                            <div className="text-xs text-zinc-500 dark:text-white/50">Stripe payment successful • Just now</div>
                                         </div>
                                     </div>
                                 </div>
@@ -264,128 +232,209 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    {/* ── LOGO CLOUD ──────── */}
-                    <section className="border-y border-border/30 bg-muted/20 py-12 backdrop-blur-sm">
+                    {/* ── LOGO CLOUD (Trust Section) ──────── */}
+                    <section className="border-y border-black/5 bg-black/[0.01] py-16 backdrop-blur-sm dark:border-white/5 dark:bg-white/[0.01]">
                         <div className="mx-auto max-w-7xl px-6 text-center">
-                            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/80">Trusted by innovative teams</p>
-                            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-16 gap-y-8 opacity-40 grayscale transition-all duration-500 hover:grayscale-0 hover:opacity-100">
-                                {/* Simulated premium logos */}
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <div key={i} className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground transition-colors">
-                                        <div className="h-7 w-7 rounded-lg bg-foreground" /> Acme Corp
+                            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 dark:text-white/40">Trusted by engineering teams at</p>
+                            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-16 gap-y-8 opacity-40 transition-opacity duration-700 hover:opacity-80">
+                                {/* Simulated premium typographic logos */}
+                                {['VERCEL', 'LINEAR', 'STRIPE', 'RAYCAST', 'GITHUB'].map((name) => (
+                                    <div key={name} className="flex items-center text-xl font-bold tracking-tighter text-zinc-900 dark:text-white">
+                                        {name}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </section>
 
-                    {/* ── FEATURES BENTO (Apple-tier grid) ───────────────────── */}
-                    <section id="features" className="relative py-24 md:py-40">
+                    {/* ── FEATURES (Bento Grid) ───────────────────── */}
+                    <section id="features" className="relative py-32 md:py-48">
                         <div className="mx-auto max-w-7xl px-6">
                             <FadeIn>
                                 <div className="mx-auto max-w-2xl text-center">
-                                    <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary shadow-sm backdrop-blur-md">
-                                        <Sparkles className="h-3.5 w-3.5" /> Core Capabilities
-                                    </div>
-                                    <h2 className="text-4xl font-semibold tracking-tighter text-foreground sm:text-5xl md:text-6xl">
+                                    <h2 className="text-3xl font-medium tracking-tighter text-zinc-900 sm:text-5xl dark:text-white">
                                         Everything you need to scale.
                                     </h2>
-                                    <p className="mt-6 text-xl text-muted-foreground leading-relaxed">
-                                        A complete, production-grade foundation designed by industry experts, so you can focus entirely on your unique business logic.
+                                    <p className="mt-6 text-lg leading-relaxed tracking-tight text-zinc-500 dark:text-white/50">
+                                        A cohesive ecosystem of primitives designed by experts. Stop writing boilerplate and start shipping actual business logic.
                                     </p>
                                 </div>
                             </FadeIn>
 
-                            <StaggerChildren className="mt-20 grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4" staggerDelay={0.08}>
-                                {features.map((feature) => (
-                                    <StaggerItem key={feature.title} className={feature.className}>
-                                        <div className="group relative flex h-full min-h-70 flex-col justify-between overflow-hidden rounded-[2.5rem] border border-border/50 bg-background/40 p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] dark:bg-neutral-900/40">
-                                            
-                                            {/* Top right subtle accent */}
-                                            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5 blur-3xl transition-all duration-500 group-hover:bg-primary/10" />
-                                            
-                                            <div>
-                                                <div className="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg transition-transform duration-500 group-hover:scale-110">
-                                                    <feature.icon className="h-6 w-6" />
+                            <StaggerChildren className="mt-20 grid grid-cols-1 gap-4 md:grid-cols-3" staggerDelay={0.1}>
+                                
+                                {/* BENTO CARD 1: Authentication */}
+                                <StaggerItem className="md:col-span-2">
+                                    <div className="group relative flex h-[400px] flex-col justify-between overflow-hidden rounded-[32px] border border-black/5 bg-white p-8 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-[#0A0A0A] dark:shadow-none dark:hover:bg-[#111]">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-black/[0.02] to-transparent dark:from-white/[0.02]" />
+                                        <div className="relative z-10 flex h-48 w-full items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-zinc-50/50 p-6 dark:border-white/5 dark:bg-white/[0.02]">
+                                            {/* Abstract Auth Visual */}
+                                            <div className="relative flex flex-col items-center gap-4">
+                                                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-black/5 bg-white shadow-[0_0_30px_rgba(0,0,0,0.05)] dark:border-white/10 dark:bg-white/[0.05] dark:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                                                    <Fingerprint className="h-8 w-8 text-zinc-600 dark:text-white/70" />
                                                 </div>
-                                                <h3 className="text-2xl font-semibold tracking-tight text-foreground">
-                                                    {feature.title}
-                                                </h3>
-                                                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                                                    {feature.description}
-                                                </p>
-                                            </div>
-                                            
-                                            <div className="mt-8 flex items-center text-sm font-semibold text-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                                                Explore feature <ArrowRight className="ml-1 h-4 w-4" />
+                                                <div className="h-1.5 w-20 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+                                                    <div className="h-full w-1/2 animate-pulse rounded-full bg-zinc-900 dark:bg-white" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </StaggerItem>
-                                ))}
+                                        <div className="relative z-10 mt-6">
+                                            <div className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-white/50">
+                                                <Shield className="h-4 w-4" /> Authentication
+                                            </div>
+                                            <h3 className="mb-2 text-xl font-medium tracking-tight text-zinc-900 dark:text-white">Secure by default</h3>
+                                            <p className="text-sm leading-relaxed text-zinc-500 dark:text-white/50">Complete auth flow with 2FA, biometric support, and social logins natively integrated out of the box.</p>
+                                        </div>
+                                    </div>
+                                </StaggerItem>
+
+                                {/* BENTO CARD 2: API Tokens */}
+                                <StaggerItem className="md:col-span-1">
+                                    <div className="group relative flex h-[400px] flex-col justify-between overflow-hidden rounded-[32px] border border-black/5 bg-white p-8 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-[#0A0A0A] dark:shadow-none dark:hover:bg-[#111]">
+                                        <div className="relative z-10 flex h-48 w-full flex-col gap-2 overflow-hidden rounded-2xl border border-black/5 bg-zinc-50/50 p-4 dark:border-white/5 dark:bg-white/[0.02]">
+                                            {/* Mock Code Block */}
+                                            <div className="mb-2 flex items-center gap-2">
+                                                <Terminal className="h-3 w-3 text-zinc-400 dark:text-white/30" />
+                                                <span className="font-mono text-[10px] text-zinc-400 dark:text-white/30">api_keys.ts</span>
+                                            </div>
+                                            <div className="font-mono text-[10px] leading-loose text-zinc-500 dark:text-white/50">
+                                                <span className="text-blue-600 dark:text-blue-400">const</span> token = <span className="text-yellow-600 dark:text-yellow-200">generate</span>();<br/>
+                                                <span className="text-emerald-600 dark:text-emerald-400">"frmx_live_9a8b7c6..."</span><br/>
+                                                <span className="text-blue-600 dark:text-blue-400">await</span> db.keys.save(token);
+                                            </div>
+                                        </div>
+                                        <div className="relative z-10 mt-6">
+                                            <div className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-white/50">
+                                                <Key className="h-4 w-4" /> Developer APIs
+                                            </div>
+                                            <h3 className="mb-2 text-xl font-medium tracking-tight text-zinc-900 dark:text-white">Sanctum Tokens</h3>
+                                            <p className="text-sm leading-relaxed text-zinc-500 dark:text-white/50">API token management with granular scoped permissions.</p>
+                                        </div>
+                                    </div>
+                                </StaggerItem>
+
+                                {/* BENTO CARD 3: Billing */}
+                                <StaggerItem className="md:col-span-1">
+                                    <div className="group relative flex h-[400px] flex-col justify-between overflow-hidden rounded-[32px] border border-black/5 bg-white p-8 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-[#0A0A0A] dark:shadow-none dark:hover:bg-[#111]">
+                                        <div className="relative z-10 flex h-48 w-full flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-black/5 bg-zinc-50/50 p-4 dark:border-white/5 dark:bg-white/[0.02]">
+                                            <div className="flex items-center justify-between rounded-lg border border-black/5 bg-white p-3 shadow-sm dark:border-white/5 dark:bg-white/[0.03] dark:shadow-none">
+                                                <div className="text-[11px] font-medium text-zinc-600 dark:text-white/60">Pro Plan</div>
+                                                <div className="text-[11px] font-medium text-zinc-900 dark:text-white">$49/mo</div>
+                                            </div>
+                                            <div className="flex items-center justify-between rounded-lg border border-black/5 bg-white p-3 opacity-50 shadow-sm dark:border-white/5 dark:bg-white/[0.03] dark:shadow-none">
+                                                <div className="text-[11px] font-medium text-zinc-600 dark:text-white/60">Enterprise</div>
+                                                <div className="text-[11px] font-medium text-zinc-900 dark:text-white">Custom</div>
+                                            </div>
+                                        </div>
+                                        <div className="relative z-10 mt-6">
+                                            <div className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-white/50">
+                                                <CreditCard className="h-4 w-4" /> Subscription Billing
+                                            </div>
+                                            <h3 className="mb-2 text-xl font-medium tracking-tight text-zinc-900 dark:text-white">Stripe Integration</h3>
+                                            <p className="text-sm leading-relaxed text-zinc-500 dark:text-white/50">Automated plan management and secure customer portals.</p>
+                                        </div>
+                                    </div>
+                                </StaggerItem>
+
+                                {/* BENTO CARD 4: Real-time & Teams */}
+                                <StaggerItem className="md:col-span-2">
+                                    <div className="group relative flex h-[400px] flex-col justify-between overflow-hidden rounded-[32px] border border-black/5 bg-white p-8 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-[#0A0A0A] dark:shadow-none dark:hover:bg-[#111]">
+                                        <div className="absolute inset-0 bg-gradient-to-tl from-black/[0.02] to-transparent dark:from-white/[0.02]" />
+                                        <div className="relative z-10 flex h-48 w-full items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-zinc-50/50 p-6 dark:border-white/5 dark:bg-white/[0.02]">
+                                            {/* RBAC Visual */}
+                                            <div className="flex w-full max-w-sm flex-col gap-2">
+                                                {[
+                                                    { email: 'admin@acme.com', role: 'Owner' },
+                                                    { email: 'dev@acme.com', role: 'Developer' },
+                                                    { email: 'viewer@acme.com', role: 'Read-only' },
+                                                ].map((user, i) => (
+                                                    <div key={i} className="flex items-center justify-between rounded-lg border border-black/5 bg-white px-4 py-3 shadow-sm dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-6 w-6 rounded-full bg-black/10 dark:bg-white/10" />
+                                                            <span className="text-[11px] font-medium text-zinc-700 dark:text-white/70">{user.email}</span>
+                                                        </div>
+                                                        <span className="rounded bg-black/5 px-2 py-1 text-[10px] text-zinc-500 dark:bg-white/5 dark:text-white/40">{user.role}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="relative z-10 mt-6">
+                                            <div className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-white/50">
+                                                <Users className="h-4 w-4" /> Teams & Operations
+                                            </div>
+                                            <h3 className="mb-2 text-xl font-medium tracking-tight text-zinc-900 dark:text-white">Multi-tenant Architecture</h3>
+                                            <p className="text-sm leading-relaxed text-zinc-500 dark:text-white/50">Workspace system with role-based access control and WebSocket live updates via Laravel Reverb.</p>
+                                        </div>
+                                    </div>
+                                </StaggerItem>
                             </StaggerChildren>
                         </div>
                     </section>
 
-                    {/* ── STATS FLOATING PANEL (Clean & integrated) ──────────────── */}
-                    <section className="py-12 relative z-10">
+                    {/* ── STATS SECTION ──────────────── */}
+                    <section className="border-y border-black/5 bg-zinc-50/50 py-24 dark:border-white/5 dark:bg-[#0A0A0A]">
                         <div className="mx-auto max-w-6xl px-6">
                             <FadeIn>
-                                <div className="relative overflow-hidden rounded-[2.5rem] border border-border/50 bg-background/60 p-10 shadow-2xl backdrop-blur-3xl sm:p-16">
-                                    <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-primary/5" />
-                                    <div className="relative grid grid-cols-2 gap-10 divide-border/50 md:grid-cols-4 md:divide-x">
-                                        {stats.map((stat, i) => (
-                                            <div key={stat.label} className={`flex flex-col items-center justify-center text-center ${i % 2 === 0 ? 'border-none' : ''}`}>
-                                                <div className="text-5xl font-semibold tracking-tighter text-foreground sm:text-6xl">
-                                                    <AnimatedCounter
-                                                        value={stat.value}
-                                                        suffix={stat.suffix}
-                                                        decimals={stat.decimals || 0}
-                                                    />
-                                                </div>
-                                                <p className="mt-3 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                                                    {stat.label}
-                                                </p>
+                                <div className="grid grid-cols-2 gap-y-12 md:grid-cols-4 md:divide-x md:divide-black/10 dark:md:divide-white/10">
+                                    {stats.map((stat) => (
+                                        <div key={stat.label} className="flex flex-col items-center px-4 text-center">
+                                            <div className="tabular-nums text-4xl font-medium tracking-tighter text-zinc-900 sm:text-5xl dark:text-white">
+                                                <AnimatedCounter
+                                                    value={stat.value}
+                                                    suffix={stat.suffix}
+                                                    decimals={stat.decimals || 0}
+                                                />
                                             </div>
-                                        ))}
-                                    </div>
+                                            <p className="mt-3 text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-white/40">
+                                                {stat.label}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
                             </FadeIn>
                         </div>
                     </section>
 
-                    {/* ── HOW IT WORKS ─────────────────────── */}
-                    <section className="py-24 md:py-40">
+                    {/* ── HOW IT WORKS (Pipeline) ─────────────────────── */}
+                    <section className="py-32 md:py-48">
                         <div className="mx-auto max-w-7xl px-6">
                             <FadeIn>
-                                <div className="mx-auto max-w-3xl text-center">
-                                    <h2 className="text-4xl font-semibold tracking-tighter text-foreground sm:text-5xl md:text-6xl">
-                                        Up and running in minutes.
+                                <div className="mx-auto max-w-2xl text-center">
+                                    <h2 className="text-3xl font-medium tracking-tighter text-zinc-900 sm:text-5xl dark:text-white">
+                                        From clone to production.
                                     </h2>
-                                    <p className="mt-6 text-xl leading-relaxed text-muted-foreground">
-                                        Skip the tedious boilerplate. From repository clone to production deployment in three incredibly simple steps.
+                                    <p className="mt-6 text-lg leading-relaxed tracking-tight text-zinc-500 dark:text-white/50">
+                                        An elegant workflow designed for speed. Deploy robust infrastructure in exactly three steps.
                                     </p>
                                 </div>
                             </FadeIn>
 
                             <div className="relative mt-24">
-                                {/* Desktop connecting line */}
-                                <div className="absolute left-1/2 top-10 hidden w-[80%] -translate-x-1/2 border-t border-dashed border-border md:block" />
+                                {/* Connection Line */}
+                                <div className="absolute bottom-0 left-[38px] top-0 w-px bg-black/10 md:left-1/2 md:-translate-x-1/2 dark:bg-white/5" />
                                 
-                                <StaggerChildren className="grid gap-16 md:grid-cols-3 md:gap-12" staggerDelay={0.15}>
-                                    {steps.map((step) => (
+                                <StaggerChildren className="space-y-16 md:space-y-24" staggerDelay={0.2}>
+                                    {steps.map((step, index) => (
                                         <StaggerItem key={step.step}>
-                                            <div className="relative flex flex-col items-center text-center">
-                                                <div className="relative z-10 mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-background shadow-[0_0_0_8px_rgba(var(--background))] border border-border/50 backdrop-blur-xl">
-                                                    <span className="bg-linear-to-br from-foreground to-foreground/40 bg-clip-text text-2xl font-bold text-transparent">
-                                                        {step.step}
-                                                    </span>
+                                            <div className={`relative flex flex-col items-center gap-8 md:flex-row md:gap-16 ${index % 2 === 0 ? '' : 'md:flex-row-reverse'}`}>
+                                                
+                                                {/* Number Node */}
+                                                <div className="absolute left-0 z-10 flex h-[76px] w-[76px] -translate-x-[19px] items-center justify-center rounded-full border border-black/10 bg-white shadow-sm md:left-1/2 md:-translate-x-1/2 dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_0_30px_rgba(255,255,255,0.03)]">
+                                                    <span className="text-xl font-medium text-zinc-800 dark:text-white/80">{step.step}</span>
                                                 </div>
-                                                <h3 className="text-2xl font-semibold tracking-tight text-foreground">
-                                                    {step.title}
-                                                </h3>
-                                                <p className="mt-4 text-base leading-relaxed text-muted-foreground px-4">
-                                                    {step.description}
-                                                </p>
+
+                                                {/* Content - Left or Right */}
+                                                <div className="ml-24 flex flex-col justify-center text-left md:ml-0 md:w-1/2 md:px-16">
+                                                    <h3 className="mb-3 text-2xl font-medium tracking-tight text-zinc-900 dark:text-white">
+                                                        {step.title}
+                                                    </h3>
+                                                    <p className="text-base leading-relaxed text-zinc-500 dark:text-white/50">
+                                                        {step.description}
+                                                    </p>
+                                                </div>
+                                                
+                                                {/* Empty half for alignment */}
+                                                <div className="hidden md:block md:w-1/2" />
                                             </div>
                                         </StaggerItem>
                                     ))}
@@ -394,36 +443,33 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    {/* ── CTA (Massive Dark Mode Contrast Block) ──────────────────────────────── */}
+                    {/* ── CINEMATIC CTA ──────────────────────────────── */}
                     <section className="py-24 md:py-32">
-                        <div className="mx-auto max-w-6xl px-6">
+                        <div className="mx-auto max-w-5xl px-6">
                             <FadeIn>
-                                <div className="relative overflow-hidden rounded-[3rem] bg-foreground px-6 py-20 text-center shadow-2xl sm:px-16 sm:py-32">
-                                    {/* Pure Apple dark block aesthetic */}
-                                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]" />
-                                    <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-77.5 w-77.5 rounded-full bg-primary opacity-20 blur-[100px]" />
+                                <div className="group relative overflow-hidden rounded-[40px] border border-black/10 bg-zinc-50 px-6 py-24 text-center shadow-lg sm:px-16 sm:py-32 dark:border-white/10 dark:bg-[#0A0A0A] dark:shadow-[0_0_100px_rgba(255,255,255,0.02)]">
+                                    
+                                    {/* Ambient Glows */}
+                                    <div className="absolute left-1/2 top-0 h-[300px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/[0.03] blur-[80px] dark:bg-white/[0.03]" />
+                                    <div className="absolute bottom-0 left-1/2 h-[300px] w-[600px] -translate-x-1/2 translate-y-1/2 rounded-full bg-blue-500/[0.03] blur-[80px] dark:bg-blue-500/[0.02]" />
 
-                                    <div className="relative z-10 mx-auto max-w-3xl">
-                                        <h2 className="text-4xl font-semibold tracking-tighter text-background sm:text-6xl md:text-7xl">
-                                            Ready to ship your next big idea?
+                                    <div className="relative z-10 mx-auto max-w-2xl">
+                                        <h2 className="text-4xl font-medium tracking-tighter text-zinc-900 sm:text-6xl dark:text-white">
+                                            Ready to deploy?
                                         </h2>
-                                        <p className="mx-auto mt-8 max-w-2xl text-xl text-background/70 leading-relaxed">
-                                            Join thousands of elite developers who build faster and scale smarter with FrameX. The foundation is free and open source.
+                                        <p className="mx-auto mt-6 text-lg leading-relaxed tracking-tight text-zinc-500 dark:text-white/50">
+                                            Join the top-tier developers building the next generation of software with FrameX. Free and open source.
                                         </p>
-                                        <div className="mt-12 flex flex-col items-center justify-center gap-5 sm:flex-row">
-                                            <Button size="lg" asChild className="h-14 rounded-full bg-background text-foreground hover:bg-background/90 px-8 text-lg font-medium transition-transform hover:scale-105">
+                                        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                                            <Button size="lg" asChild className="h-12 rounded-full bg-zinc-900 px-8 text-sm font-medium text-white transition-all hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-white/90">
                                                 <Link href={register()}>
-                                                    Get Started for Free
-                                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                                    Start Building Now
+                                                    <ArrowRight className="ml-2 h-4 w-4" />
                                                 </Link>
                                             </Button>
-                                            <Button size="lg" variant="outline" asChild className="h-14 rounded-full border-background/20 bg-transparent text-background hover:bg-background/10 hover:text-background px-8 text-lg font-medium transition-colors">
-                                                <a
-                                                    href="https://github.com"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    Star on GitHub
+                                            <Button size="lg" variant="outline" asChild className="h-12 rounded-full border-black/10 bg-black/5 px-8 text-sm font-medium text-zinc-900 transition-colors hover:bg-black/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10">
+                                                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                                                    View GitHub Repository
                                                 </a>
                                             </Button>
                                         </div>
