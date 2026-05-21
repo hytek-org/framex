@@ -54,7 +54,7 @@ class FileController extends Controller
         abort_unless($file->team_id === $current_team->id, 404);
 
         Storage::disk($file->disk)->delete($file->path);
-        $file->delete();
+        $file->delete($file->id);
 
         return back();
     }
