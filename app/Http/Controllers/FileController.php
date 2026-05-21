@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Teams\RecordTeamActivity;
 use App\Models\Team;
 use App\Models\TeamFile;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +28,7 @@ class FileController extends Controller
         ]);
     }
 
-    public function store(Request $request, Team $current_team, RecordTeamActivity $activity): RedirectResponse
+    public function store(Request $request, Team $current_team): RedirectResponse
     {
         $validated = $request->validate([
             'file' => ['required', 'file', 'max:10240'],
@@ -38,7 +37,7 @@ class FileController extends Controller
         $uploadedFile = $validated['file'];
         $path = $uploadedFile->store("teams/{$current_team->id}");
 
-        $file = $current_team->files()->create([
+        $current_team->files()->create([
             'user_id' => $request->user()->id,
             'disk' => config('filesystems.default'),
             'path' => $path,
@@ -47,19 +46,15 @@ class FileController extends Controller
             'size' => $uploadedFile->getSize(),
         ]);
 
-        $activity->handle($current_team, $request->user(), 'file.uploaded', "{$file->name} was uploaded.");
-
         return back();
     }
 
-    public function destroy(Request $request, Team $current_team, TeamFile $file, RecordTeamActivity $activity): RedirectResponse
+    public function destroy(Request $request, Team $current_team, TeamFile $file): RedirectResponse
     {
         abort_unless($file->team_id === $current_team->id, 404);
 
         Storage::disk($file->disk)->delete($file->path);
         $file->delete();
-
-        $activity->handle($current_team, $request->user(), 'file.deleted', "{$file->name} was deleted.");
 
         return back();
     }

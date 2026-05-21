@@ -39,10 +39,12 @@ export default function BillingIndex({
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
+
         if (params.get('checkout') === 'success') {
             toast.success('Subscription started successfully!');
             window.history.replaceState({}, '', window.location.pathname);
         }
+
         if (params.get('checkout') === 'cancelled') {
             toast.error('Checkout was cancelled.');
             window.history.replaceState({}, '', window.location.pathname);
@@ -51,8 +53,13 @@ export default function BillingIndex({
 
     const { errors } = usePage().props;
     useEffect(() => {
-        if (errors.plan) toast.error(errors.plan as string);
-        if (errors.stripe) toast.error(errors.stripe as string);
+        if (errors.plan) {
+            toast.error(errors.plan as string);
+        }
+
+        if (errors.stripe) {
+            toast.error(errors.stripe as string);
+        }
     }, [errors]);
 
     return (
@@ -134,13 +141,14 @@ export default function BillingIndex({
                 >
                     {plans.map((plan) => {
                         const isCurrent = plan.name === subscription.name;
+
                         return (
                             <StaggerItem key={plan.id}>
                                 <div
                                     className={cn(
                                         'relative flex h-full flex-col rounded-2xl border p-6 transition-all',
                                         isCurrent
-                                            ? 'border-primary/40 bg-primary/[0.03]'
+                                            ? 'border-primary/40 bg-primary/3'
                                             : 'bg-card hover:shadow-md dark:hover:shadow-black/20',
                                     )}
                                 >

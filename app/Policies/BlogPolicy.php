@@ -31,6 +31,7 @@ class BlogPolicy
     public function update(User $user, Blog $blog): bool
     {
         $team = $user->currentTeam;
+
         if (!$team || $blog->team_id !== $team->id) {
             return false;
         }

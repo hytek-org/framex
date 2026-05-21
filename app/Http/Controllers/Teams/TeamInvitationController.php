@@ -149,6 +149,7 @@ class TeamInvitationController extends Controller
         }
 
         /** @phpstan-ignore-next-line */
+        $invitation->declined = true;
         $invitation->delete();
 
         Inertia::flash('toast', ['type' => 'info', 'message' => 'Invitation declined.']);

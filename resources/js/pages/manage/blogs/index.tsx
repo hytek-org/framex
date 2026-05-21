@@ -1,38 +1,40 @@
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
-import { BreadcrumbItem } from '@/types';
+import { Head, Link,  usePage, router } from '@inertiajs/react';
+import { format } from 'date-fns';
 import {
     Plus, Edit, Trash2, Eye, Calendar, User, Tag, FolderOpen,
-    Search, Filter, MoreHorizontal, BookOpen, TrendingUp, FileText
+    Search,  MoreHorizontal, BookOpen, FileText
 } from 'lucide-react';
-import {
-    Table, TableBody, TableCell, TableHead,
-    TableHeader, TableRow
-} from '@/components/ui/table';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
-import { useState } from 'react';
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem,
     DropdownMenuSeparator, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+
+import {
+    Table, TableBody, TableCell, TableHead,
+    TableHeader, TableRow
+} from '@/components/ui/table';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+
 
 export default function BlogIndex({ blogs }: { blogs: any }) {
     const { currentTeam } = usePage().props as any;
     const tp = currentTeam?.slug ? `/${currentTeam.slug}` : '';
-
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Blog Management', href: `${tp}/manage/blogs` },
-    ];
-
     const [search, setSearch] = useState('');
-
-    const handleDelete = (slug: string) => {
-        if (confirm('Delete this post permanently?')) {
-            router.delete(`${tp}/manage/blogs/${slug}`);
-        }
-    };
 
     const filtered = blogs.data.filter((b: any) =>
         b.title.toLowerCase().includes(search.toLowerCase())
@@ -113,7 +115,7 @@ export default function BlogIndex({ blogs }: { blogs: any }) {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-muted/30 hover:bg-muted/30">
-                                <TableHead className="w-[380px]">Post</TableHead>
+                                <TableHead className="w-95">Post</TableHead>
                                 <TableHead>Category</TableHead>
                                 <TableHead>Tags</TableHead>
                                 <TableHead>Status</TableHead>
@@ -146,8 +148,8 @@ export default function BlogIndex({ blogs }: { blogs: any }) {
                                                     }
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-semibold text-sm truncate max-w-[220px]">{blog.title}</p>
-                                                    <p className="text-xs text-muted-foreground truncate max-w-[220px]">{blog.slug}</p>
+                                                    <p className="font-semibold text-sm truncate max-w-55">{blog.title}</p>
+                                                    <p className="text-xs text-muted-foreground truncate max-w-55">{blog.slug}</p>
                                                     {blog.user && (
                                                         <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                                                             <User className="h-2.5 w-2.5" />
@@ -171,7 +173,7 @@ export default function BlogIndex({ blogs }: { blogs: any }) {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex flex-wrap gap-1 max-w-[160px]">
+                                            <div className="flex flex-wrap gap-1 max-w-40">
                                                 {blog.tags?.slice(0, 3).map((t: any) => (
                                                     <Badge key={t.id} variant="secondary" className="text-xs px-1.5 py-0 font-normal">
                                                         {t.name}
@@ -215,12 +217,45 @@ export default function BlogIndex({ blogs }: { blogs: any }) {
                                                         </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleDelete(blog.slug)}
-                                                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                                                    >
-                                                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
-                                                    </DropdownMenuItem>
+                                                   <AlertDialog>
+    <AlertDialogTrigger asChild>
+        <DropdownMenuItem
+            onSelect={(e) => e.preventDefault()}
+            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+        >
+            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            Delete
+        </DropdownMenuItem>
+    </AlertDialogTrigger>
+
+    <AlertDialogContent>
+        <AlertDialogHeader>
+            <AlertDialogTitle>
+                Delete Blog Post?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently
+                delete the blog post.
+            </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+            <AlertDialogCancel className='cursor-pointer'>
+                Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction variant={'destructive'}
+                onClick={() =>
+                    router.delete(`${tp}/manage/blogs/${blog.slug}`)
+                }
+                className="bg-destructive cursor-pointer text-white hover:bg-destructive/90"
+            >
+                Delete
+            </AlertDialogAction>
+        </AlertDialogFooter>
+    </AlertDialogContent>
+</AlertDialog>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -251,3 +286,12 @@ export default function BlogIndex({ blogs }: { blogs: any }) {
         </>
     );
 }
+
+BlogIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Blogs',
+            href: '/manage/blogs',
+        },
+    ],
+};

@@ -1,23 +1,17 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { BreadcrumbItem } from '@/types';
+import { ArrowLeft, Save, Loader2, ImagePlus, Tag, FolderOpen, X, BookOpen } from 'lucide-react';
+import { useState } from 'react';
+import { RichTextEditor } from '@/components/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Loader2, ImagePlus, Tag, FolderOpen, X, BookOpen } from 'lucide-react';
-import { RichTextEditor } from '@/components/rich-text-editor';
-import { useState } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+
 
 export default function BlogCreate({ categories, tags }: { categories: any[]; tags: any[] }) {
     const { currentTeam } = usePage().props as any;
     const tp = currentTeam?.slug ? `/${currentTeam.slug}` : '';
-
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Blog Management', href: `${tp}/manage/blogs` },
-        { title: 'New Post', href: '#' },
-    ];
 
     const { data, setData, post, processing, errors } = useForm({
         title: '',
@@ -38,6 +32,7 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+
         if (file) {
             setData('cover_image', file);
             const reader = new FileReader();
@@ -52,6 +47,7 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
             : [...data.tag_ids, id]
         );
     };
+
 
     return (
         <>
@@ -142,7 +138,10 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
                                             <img src={imagePreview} className="w-full aspect-video object-cover" alt="" />
                                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                 <Button type="button" size="sm" variant="secondary" onClick={() => document.getElementById('cover_image')?.click()}>Change</Button>
-                                                <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => { setImagePreview(null); setData('cover_image', null); }}>
+                                                <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => {
+                                                    setImagePreview(null);
+                                                    setData('cover_image', null);
+                                                }}>
                                                     <X className="h-3.5 w-3.5" />
                                                 </Button>
                                             </div>
@@ -203,6 +202,7 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
                                     <div className="flex flex-wrap gap-1.5">
                                         {tags.map((tag: any) => {
                                             const active = data.tag_ids.includes(tag.id);
+                                            
                                             return (
                                                 <button
                                                     key={tag.id}
@@ -233,3 +233,17 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
         </>
     );
 }
+
+
+BlogCreate.layout = {
+    breadcrumbs: [
+        {
+            title: 'Blogs',
+            href: '/manage/blogs',
+        },
+        {
+            title: 'New Post',
+            href: '',
+        },
+    ],
+};

@@ -38,6 +38,7 @@ export default function NotificationsIndex({ notifications }: Props) {
                         <div className="space-y-2">
                             {notifications.map((n) => {
                                 const isInvitation = n.title.toLowerCase().includes('invitation');
+                                
                                 return (
                                     <div
                                         key={n.id}

@@ -2,10 +2,34 @@
 
 namespace App\Models;
 
+use App\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class Blog extends Model
 {
+    use LogsActivity;
+
+    public function logActivityEvent(string $action): string
+    {
+        if ($action === 'updated' && $this->wasChanged('is_published') && $this->is_published) {
+            return 'blog.published';
+        }
+        return "blog.{$action}";
+    }
+
+    public function logActivityDescription(string $action): string
+    {
+        if ($action === 'updated' && $this->wasChanged('is_published') && $this->is_published) {
+            return "Blog post '{$this->title}' was published.";
+        }
+        return match ($action) {
+            'created' => "Blog post '{$this->title}' was created.",
+            'updated' => "Blog post '{$this->title}' was updated.",
+            'deleted' => "Blog post '{$this->title}' was deleted.",
+            default => "Blog post '{$this->title}' was {$action}.",
+        };
+    }
+
     protected $fillable = [
         'title',
         'slug',
