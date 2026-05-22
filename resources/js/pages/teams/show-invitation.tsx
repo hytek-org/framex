@@ -4,7 +4,7 @@ import { AlertCircle, Check, CheckCircle, Clock, Mail, Shield, Sparkles, UserPlu
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout';
+
 import invitations from '@/routes/invitations';
 import { PageTransition } from '@/components/shared/motion';
 import { cn } from '@/lib/utils';
@@ -260,8 +260,4 @@ export default function ShowInvitation() {
   );
 }
 
-ShowInvitation.layout = (page: React.ReactNode) => (
-  <AppLayout breadcrumbs={[{ title: 'Notifications', href: '/notifications' }, { title: 'Invitation', href: '#' }]}>
-    {page}
-  </AppLayout>
-);
+

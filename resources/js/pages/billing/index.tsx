@@ -226,8 +226,4 @@ export default function BillingIndex({
     );
 }
 
-BillingIndex.layout = {
-    breadcrumbs: [
-        { title: 'Billing', href: '/billing' },
-    ],
-};
+

@@ -13,6 +13,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -38,6 +39,7 @@ Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('search-api', [SearchController::class, 'search'])->name('search.api');
         Route::get('activity', ActivityController::class)->name('activity.index');
         Route::get('files', [FileController::class, 'index'])->name('files.index');
         Route::post('files', [FileController::class, 'store'])->name('files.store');

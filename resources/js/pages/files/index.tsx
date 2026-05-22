@@ -97,9 +97,4 @@ export default function FilesIndex({ files }: Props) {
     );
 }
 
-FilesIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
-    breadcrumbs: [
-        { title: 'Dashboard', href: props.currentTeam ? `/${props.currentTeam.slug}/dashboard` : '/' },
-        { title: 'Files', href: props.currentTeam ? `/${props.currentTeam.slug}/files` : '/files' },
-    ],
-});
+

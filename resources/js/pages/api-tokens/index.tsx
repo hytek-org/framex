@@ -238,8 +238,4 @@ export default function ApiTokensIndex({ tokens, plainTextToken }: Props) {
     );
 }
 
-ApiTokensIndex.layout = {
-    breadcrumbs: [
-        { title: 'API Tokens', href: '/api-tokens' },
-    ],
-};
+

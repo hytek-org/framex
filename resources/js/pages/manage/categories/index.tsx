@@ -230,10 +230,7 @@ export default function CategoriesIndex({ categories }: { categories: any[] }) {
     const [editSlug, setEditSlug] = useState<string | null>(null);
     const [editProcessing, setEditProcessing] = useState(false);
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Blog', href: `${tp}/manage/blogs` },
-        { title: 'Categories', href: '#' },
-    ];
+
 
     const handleCreate = (data: { name: string; description: string; color: string }) => {
         router.post(`${tp}/manage/categories`, data, {

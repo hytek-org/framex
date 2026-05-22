@@ -1,5 +1,4 @@
 import { Head } from '@inertiajs/react';
-import { Shield, Users, Zap } from 'lucide-react';
 import { MetricCard } from '@/components/shared/metric-card';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/components/shared/motion';
 import { PageHeader } from '@/components/shared/page-header';
@@ -66,4 +65,3 @@ export default function AdminIndex({ metrics, latestUsers, latestTeams }: Props)
     );
 }
 
-AdminIndex.layout = { breadcrumbs: [{ title: 'Admin', href: '/admin' }] };

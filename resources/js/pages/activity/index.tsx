@@ -1,5 +1,5 @@
-import { Head, usePage } from '@inertiajs/react';
-import { Activity as ActivityIcon, Filter } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import { Activity as ActivityIcon } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FadeIn } from '@/components/shared/motion';
 import { PageHeader } from '@/components/shared/page-header';
@@ -29,8 +29,6 @@ type Props = {
 };
 
 export default function ActivityIndex({ activities }: Props) {
-    const page = usePage();
-    const { currentTeam } = page.props;
 
     return (
         <>
@@ -93,15 +91,3 @@ export default function ActivityIndex({ activities }: Props) {
     );
 }
 
-ActivityIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: props.currentTeam ? `/${props.currentTeam.slug}/dashboard` : '/',
-        },
-        {
-            title: 'Activity',
-            href: props.currentTeam ? `/${props.currentTeam.slug}/activity` : '/activity',
-        },
-    ],
-});

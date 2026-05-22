@@ -33,13 +33,10 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import type { BreadcrumbItem, NavItem } from '@/types';
-
-type Props = {
-    breadcrumbs?: BreadcrumbItem[];
-};
+import type { NavItem } from '@/types';
 
 const rightNavItems: NavItem[] = [
     {
@@ -57,7 +54,8 @@ const rightNavItems: NavItem[] = [
 const activeItemStyles =
     'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 
-export function AppHeader({ breadcrumbs = [] }: Props) {
+export function AppHeader() {
+    const breadcrumbs = useBreadcrumbs();
     const page = usePage();
     const { auth, currentTeam } = page.props;
     const getInitials = useInitials();
@@ -181,10 +179,23 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 
                     <div className="ml-auto flex items-center space-x-2">
                         <div className="relative flex items-center space-x-1">
+                            {/* Desktop search trigger button */}
+                            <button
+                                onClick={() => window.dispatchEvent(new CustomEvent('toggle-command-menu'))}
+                                className="hidden lg:flex items-center gap-2 px-3 py-1.5 h-9 w-48 xl:w-64 rounded-md border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 transition-colors text-left text-neutral-400 dark:text-neutral-500 cursor-pointer"
+                            >
+                                <Search className="h-4 w-4 shrink-0 text-neutral-500" />
+                                <span className="text-sm flex-1">Search...</span>
+                                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-neutral-200 bg-neutral-100 px-1.5 font-mono text-[10px] font-medium text-neutral-400 opacity-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-500">
+                                    <span className="text-xs">⌘</span>K
+                                </kbd>
+                            </button>
+                            {/* Mobile search trigger button */}
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="group h-9 w-9 cursor-pointer"
+                                onClick={() => window.dispatchEvent(new CustomEvent('toggle-command-menu'))}
+                                className="lg:hidden group h-9 w-9 cursor-pointer"
                             >
                                 <Search className="size-5! opacity-80 group-hover:opacity-100" />
                             </Button>

@@ -9,6 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
 
+
+
 export default function BlogCreate({ categories, tags }: { categories: any[]; tags: any[] }) {
     const { currentTeam } = usePage().props as any;
     const tp = currentTeam?.slug ? `/${currentTeam.slug}` : '';
@@ -50,7 +52,7 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
 
 
     return (
-        <>
+       <>
             <Head title="Create Post" />
 
             <div className="flex h-full flex-1 flex-col">
@@ -202,7 +204,7 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
                                     <div className="flex flex-wrap gap-1.5">
                                         {tags.map((tag: any) => {
                                             const active = data.tag_ids.includes(tag.id);
-                                            
+
                                             return (
                                                 <button
                                                     key={tag.id}
@@ -235,15 +237,3 @@ export default function BlogCreate({ categories, tags }: { categories: any[]; ta
 }
 
 
-BlogCreate.layout = {
-    breadcrumbs: [
-        {
-            title: 'Blogs',
-            href: '/manage/blogs',
-        },
-        {
-            title: 'New Post',
-            href: '',
-        },
-    ],
-};

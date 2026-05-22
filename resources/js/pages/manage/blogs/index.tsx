@@ -286,12 +286,3 @@ export default function BlogIndex({ blogs }: { blogs: any }) {
         </>
     );
 }
-
-BlogIndex.layout = {
-    breadcrumbs: [
-        {
-            title: 'Blogs',
-            href: '/manage/blogs',
-        },
-    ],
-};

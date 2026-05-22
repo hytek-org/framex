@@ -93,4 +93,3 @@ export default function NotificationsIndex({ notifications }: Props) {
     );
 }
 
-NotificationsIndex.layout = { breadcrumbs: [{ title: 'Notifications', href: '/notifications' }] };

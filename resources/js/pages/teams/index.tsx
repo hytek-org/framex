@@ -123,11 +123,4 @@ export default function TeamsIndex({ teams }: Props) {
     );
 }
 
-TeamsIndex.layout = {
-    breadcrumbs: [
-        {
-            title: 'Teams',
-            href: index(),
-        },
-    ],
-};
+
