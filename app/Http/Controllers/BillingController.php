@@ -36,25 +36,25 @@ class BillingController extends Controller
         ]);
     }
 
-    public function checkout(Request $request, string $plan): \Symfony\Component\HttpFoundation\Response
-    {
-        $price = config("services.stripe.price_{$plan}");
+public function checkout(Request $request, string $plan): \Symfony\Component\HttpFoundation\Response
+{
+    $price = config("services.stripe.price_{$plan}");
 
-        if (! $price) {
-            return back()->withErrors([
-                'plan' => "The {$plan} plan is not correctly configured in the system."
-            ]);
-        }
-
-        $checkout = $request->user()
-            ->newSubscription('default', $price)
-            ->checkout([
-                'success_url' => route('billing.index').'?checkout=success',
-                'cancel_url' => route('billing.index').'?checkout=cancelled',
-            ]);
-
-        return Inertia::location($checkout->getTargetUrl());
+    if (! $price) {
+        return back()->withErrors([
+            'plan' => "The {$plan} plan is not correctly configured in the system."
+        ]);
     }
+
+    $checkout = $request->user()
+        ->newSubscription('default', $price)
+        ->checkout([
+            'success_url' => route('billing.index').'?checkout=success',
+            'cancel_url' => route('billing.index').'?checkout=cancelled',
+        ]); 
+
+    return Inertia::location($checkout->url);
+}
 
     public function portal(Request $request): \Symfony\Component\HttpFoundation\Response
     {
