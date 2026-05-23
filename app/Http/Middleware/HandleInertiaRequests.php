@@ -50,9 +50,10 @@ class HandleInertiaRequests extends Middleware
             'isAdmin' => fn () => (bool) $user?->is_admin,
             'unreadNotificationsCount' => fn () => $user?->unreadNotifications()->count() ?? 0,
             'billing' => fn () => $user ? [
-                'plan' => $user->subscribed('default') ? 'Pro' : 'Free',
+                'plan' => $user->currentPlanName(),
                 'subscribed' => $user->subscribed('default'),
             ] : null,
+
         ];
     }
 }

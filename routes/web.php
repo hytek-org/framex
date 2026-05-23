@@ -84,6 +84,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
     Route::post('billing/checkout/{plan}', [BillingController::class, 'checkout'])->name('billing.checkout');
     Route::get('billing/portal', [BillingController::class, 'portal'])->name('billing.portal');
+    Route::post('billing/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
+    Route::post('billing/resume', [BillingController::class, 'resume'])->name('billing.resume');
+    Route::post('billing/swap/{plan}', [BillingController::class, 'swap'])->name('billing.swap');
+    Route::get('billing/invoice/{invoice}', [BillingController::class, 'downloadInvoice'])->name('billing.invoice');
+
 
     Route::get('api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens.index');
     Route::post('api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');

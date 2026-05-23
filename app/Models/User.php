@@ -49,4 +49,36 @@ class User extends Authenticatable
     {
         return $this->email;
     }
+
+    /**
+     * Get the user's active subscription plan name.
+     */
+    public function currentPlanName(): string
+    {
+        if (! $this->subscribed('default')) {
+            return 'Free';
+        }
+
+        $subscription = $this->subscription('default');
+        if (! $subscription) {
+            return 'Free';
+        }
+
+        // Handle active pending downgrades (e.g. Scale to Pro)
+        if ($subscription->pending_plan_from && $subscription->pending_plan_until) {
+            if (\Illuminate\Support\Carbon::parse($subscription->pending_plan_until)->isFuture()) {
+                return $subscription->pending_plan_from;
+            }
+        }
+
+        $priceId = $subscription->stripe_price;
+        if ($priceId === config('services.stripe.price_pro')) {
+            return 'Pro';
+        } elseif ($priceId === config('services.stripe.price_scale')) {
+            return 'Scale';
+        }
+
+        return 'Custom';
+    }
 }
+
