@@ -99,7 +99,7 @@ export default function About() {
                             
                             {/* Huge Typography */}
                             <FadeIn direction="down">
-                                <h1 className="mx-auto max-w-5xl text-6xl font-medium leading-[0.95] tracking-tighter sm:text-7xl md:text-8xl lg:text-[8.5rem]">
+                                <h1 className="mx-auto max-w-5xl text-6xl font-medium leading-[0.95] tracking-tighter  sm:text-7xl md:text-8xl">
                                     Crafting the <br className="hidden sm:block" />
                                     <span className="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-400 bg-clip-text text-transparent dark:from-white dark:via-white/90 dark:to-white/30">
                                         modern standard.

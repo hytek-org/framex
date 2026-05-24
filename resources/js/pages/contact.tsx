@@ -211,7 +211,7 @@ export default function Contact() {
                             </FadeIn>
                             
                             <FadeIn delay={0.2}>
-                                <h1 className="text-5xl font-medium leading-[0.95] tracking-tighter text-zinc-900 sm:text-7xl md:text-8xl lg:text-[7.5rem] dark:text-white">
+                                <h1 className="text-5xl font-medium leading-[0.95] tracking-tighter text-zinc-900 sm:text-7xl md:text-8xl dark:text-white">
                                     Connect with our <br className="hidden md:block" />
                                     <span className="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-400 bg-clip-text text-transparent dark:from-white dark:via-white/90 dark:to-white/30">
                                         product specialists.
