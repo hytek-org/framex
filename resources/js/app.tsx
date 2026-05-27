@@ -5,6 +5,8 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import MarketingLayout from './layouts/marketing-layout';
+
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -13,7 +15,14 @@ createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
-                return null;
+            case name === 'pricing':
+            case name === 'features':
+            case name === 'about':
+            case name === 'contact':
+            case name.startsWith('blogs/'):
+            case name.startsWith('categories/'):
+            case name.startsWith('tags/'):
+                return MarketingLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):
@@ -33,7 +42,7 @@ createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+       color: 'oklch(0.55 0.22 275)',
     },
 });
 
