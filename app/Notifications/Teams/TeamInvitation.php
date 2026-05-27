@@ -8,8 +8,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TeamInvitation extends Notification
+class TeamInvitation extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     /**
      * Create a new notification instance.
      */
@@ -25,7 +27,7 @@ class TeamInvitation extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['mail'];
     }
 
     /**
@@ -33,8 +35,8 @@ class TeamInvitation extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $team = $this->invitation->team ?? $this->invitation->load('team')->team;
-        $inviter = $this->invitation->inviter ?? $this->invitation->load('inviter')->inviter;
+        $team = $this->invitation->team;
+        $inviter = $this->invitation->inviter;
 
         return (new MailMessage)
             ->subject(__("You've been invited to join :teamName", ['teamName' => $team->name]))
@@ -42,9 +44,7 @@ class TeamInvitation extends Notification
                 'inviterName' => $inviter->name,
                 'teamName' => $team->name,
             ]))
-            ->line(__('Role: :role', ['role' => $this->invitation->role->value]))
-            ->line($this->invitation->expires_at ? __('This invitation expires on :date', ['date' => $this->invitation->expires_at->format('F d, Y')]) : '')
-            ->action(__('Review invitation'), route('invitations.show', $this->invitation->code));
+            ->action(__('Accept invitation'), url("/invitations/{$this->invitation->code}/accept"));
     }
 
     /**
@@ -54,25 +54,11 @@ class TeamInvitation extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $team = $this->invitation->team ?? $this->invitation->load('team')->team;
-        $inviter = $this->invitation->inviter ?? $this->invitation->load('inviter')->inviter;
-
         return [
-            'title' => __('New Team Invitation'),
-            'body' => __(':inviterName invited you to join :teamName.', [
-                'inviterName' => $inviter->name,
-                'teamName' => $team->name,
-            ]),
-            'action_url' => route('invitations.show', $this->invitation->code),
-            'action_label' => 'View Invitation',
             'invitation_id' => $this->invitation->id,
-            'invitation_code' => $this->invitation->code,
             'team_id' => $this->invitation->team_id,
-            'team_name' => $team->name,
-            'inviter_name' => $inviter->name,
-            'inviter_email' => $inviter->email,
+            'team_name' => $this->invitation->team->name,
             'role' => $this->invitation->role->value,
-            'expires_at' => $this->invitation->expires_at,
         ];
     }
 }

@@ -381,4 +381,15 @@ export default function TeamEdit({
     );
 }
 
-
+TeamEdit.layout = (props: { team: { name: string; slug: string } }) => ({
+    breadcrumbs: [
+        {
+            title: 'Teams',
+            href: index(),
+        },
+        {
+            title: props.team.name,
+            href: edit(props.team.slug),
+        },
+    ],
+});

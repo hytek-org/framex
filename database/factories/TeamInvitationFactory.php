@@ -25,7 +25,7 @@ class TeamInvitationFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'role' => TeamRole::Member,
             'invited_by' => User::factory(),
-            'expires_at' => now()->addDays(3),
+            'expires_at' => null,
             'accepted_at' => null,
         ];
     }

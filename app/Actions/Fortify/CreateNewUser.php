@@ -40,20 +40,6 @@ class CreateNewUser implements CreatesNewUsers
 
             $this->createTeam->handle($user, $user->name."'s Team", isPersonal: true);
 
-            // Notify user about any existing pending invitations
-            $invitations = \App\Models\TeamInvitation::query()
-                ->where('email', '=', $user->email)
-                ->get()
-                ->filter(fn ($invitation) => ! $invitation->isExpired() && ! $invitation->isAccepted());
-
-            foreach ($invitations as $invitation) {
-                try {
-                    $user->notify(new \App\Notifications\Teams\TeamInvitation($invitation));
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('Team invitation notification failed on registration: ' . $e->getMessage());
-                }
-            }
-
             return $user;
         });
     }

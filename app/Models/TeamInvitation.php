@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\TeamRole;
-use App\Concerns\LogsActivity;
 use Database\Factories\TeamInvitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,38 +14,7 @@ use Illuminate\Support\Str;
 class TeamInvitation extends Model
 {
     /** @use HasFactory<TeamInvitationFactory> */
-    use HasFactory, LogsActivity;
-
-    public function logActivityEvent(string $action): string
-    {
-        if ($action === 'updated' && $this->wasChanged('accepted_at') && $this->accepted_at !== null) {
-            return 'invitation.accepted';
-        }
-        if ($action === 'deleted' && isset($this->declined) && $this->declined) {
-            return 'invitation.declined';
-        }
-        return match ($action) {
-            'created' => 'invitation.sent',
-            'deleted' => 'invitation.cancelled',
-            default => "invitation.{$action}",
-        };
-    }
-
-    public function logActivityDescription(string $action): string
-    {
-        if ($action === 'updated' && $this->wasChanged('accepted_at') && $this->accepted_at !== null) {
-            return "Invitation for {$this->email} was accepted.";
-        }
-        if ($action === 'deleted' && isset($this->declined) && $this->declined) {
-            return "Invitation for {$this->email} was declined.";
-        }
-        $roleName = $this->role?->value ?? 'member';
-        return match ($action) {
-            'created' => "Invitation sent to {$this->email} with role {$roleName}.",
-            'deleted' => "Invitation for {$this->email} was cancelled.",
-            default => "Invitation for {$this->email} was {$action}.",
-        };
-    }
+    use HasFactory;
 
     /**
      * Bootstrap the model and its traits.

@@ -5,19 +5,15 @@ import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: [
-                'resources/css/app.css',
-                'resources/js/app.tsx',
-            ],
+            input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
             fonts: [
-                bunny('Inter', {
-                    weights: [400, 500, 600, 700, 800],
+                bunny('Instrument Sans', {
+                    weights: [400, 500, 600],
                 }),
             ],
         }),
@@ -27,7 +23,6 @@ export default defineConfig({
                 plugins: ['babel-plugin-react-compiler'],
             },
         }),
-         tsconfigPaths(),
         tailwindcss(),
         wayfinder({
             formVariants: true,

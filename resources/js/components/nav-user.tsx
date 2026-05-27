@@ -20,10 +20,6 @@ export function NavUser() {
     const { state } = useSidebar();
     const isMobile = useIsMobile();
 
-    if (!auth.user) {
-        return null;
-    }
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>

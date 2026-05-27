@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Concerns\LogsActivity;
 use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -12,31 +11,6 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 #[Fillable(['team_id', 'user_id', 'role'])]
 class Membership extends Pivot
 {
-    use LogsActivity;
-
-    public function logActivityEvent(string $action): string
-    {
-        return match ($action) {
-            'created' => 'member.joined',
-            'updated' => 'member.updated',
-            'deleted' => 'member.removed',
-            default => "member.{$action}",
-        };
-    }
-
-    public function logActivityDescription(string $action): string
-    {
-        $this->loadMissing('user');
-        $userName = $this->user ? $this->user->name : 'A user';
-        $roleName = $this->role?->value ?? 'member';
-
-        return match ($action) {
-            'created' => "{$userName} joined the team.",
-            'updated' => "{$userName}'s role was updated to {$roleName}.",
-            'deleted' => "{$userName} was removed from the team.",
-            default => "Member action {$action} occurred.",
-        };
-    }
     /**
      * The table associated with the model.
      *

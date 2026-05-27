@@ -1,23 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    Activity,
-    Bell,
-    BookOpen,
-    CreditCard,
-    FileText,
-    FolderOpen,
-    Key,
-    LayoutGrid,
-    Search,
-    Settings,
-    Tags,
-} from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
-import { Badge } from '@/components/ui/badge';
 import {
     Sidebar,
     SidebarContent,
@@ -32,12 +19,9 @@ import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const page = usePage();
-    const { currentTeam, unreadNotificationsCount } = page.props;
-    const dashboardUrl = currentTeam
-        ? dashboard(currentTeam.slug)
+    const dashboardUrl = page.props.currentTeam
+        ? dashboard(page.props.currentTeam.slug)
         : '/';
-
-    const teamPrefix = currentTeam ? `/${currentTeam.slug}` : '';
 
     const mainNavItems: NavItem[] = [
         {
@@ -45,53 +29,18 @@ export function AppSidebar() {
             href: dashboardUrl,
             icon: LayoutGrid,
         },
-        {
-            title: 'Activity',
-            href: `${teamPrefix}/activity`,
-            icon: Activity,
-        },
-        {
-            title: 'Files',
-            href: `${teamPrefix}/files`,
-            icon: FileText,
-        },
-        {
-            title: 'Blogs',
-            href: `${teamPrefix}/manage/blogs`,
-            icon: BookOpen,
-        },
-        {
-            title: 'Categories',
-            href: `${teamPrefix}/manage/categories`,
-            icon: FolderOpen,
-        },
-        {
-            title: 'Tags',
-            href: `${teamPrefix}/manage/tags`,
-            icon: Tags,
-        },
     ];
 
-    const secondaryNavItems: NavItem[] = [
+    const footerNavItems: NavItem[] = [
         {
-            title: 'Billing',
-            href: '/billing',
-            icon: CreditCard,
+            title: 'Repository',
+            href: 'https://github.com/laravel/react-starter-kit',
+            icon: FolderGit2,
         },
         {
-            title: 'API Tokens',
-            href: '/api-tokens',
-            icon: Key,
-        },
-        {
-            title: 'Notifications',
-            href: '/notifications',
-            icon: Bell,
-        },
-        {
-            title: 'Settings',
-            href: '/settings/profile',
-            icon: Settings,
+            title: 'Documentation',
+            href: 'https://laravel.com/docs/starter-kits#react',
+            icon: BookOpen,
         },
     ];
 
@@ -115,11 +64,11 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} label="Workspace" />
-                <NavMain items={secondaryNavItems} label="Account" />
+                <NavMain items={mainNavItems} />
             </SidebarContent>
 
             <SidebarFooter>
+                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
