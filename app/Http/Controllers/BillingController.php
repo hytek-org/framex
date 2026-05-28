@@ -9,81 +9,17 @@ use Inertia\Response;
 
 class BillingController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Display the user's billing overview page.
+     */
+    public function index(Request $request): Response|RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
 
         // Sync fallback: if checkout=success or sync parameter is present
-        if ($request->get('checkout') === 'success' || $request->has('sync')) {
-            try {
-                $user->createOrGetStripeCustomer();
-                
-                if ($user->stripe_id) {
-                    $user->updateDefaultPaymentMethodFromStripe();
-                    
-                    $stripeCustomer = $user->asStripeCustomer(['subscriptions']);
-                    $stripeSubscriptions = $stripeCustomer->subscriptions->data ?? [];
-                    
-                    foreach ($stripeSubscriptions as $stripeSubscription) {
-                        $firstItem = $stripeSubscription->items->data[0];
-                        $isSinglePrice = count($stripeSubscription->items->data) === 1;
-                        
-                        $trialEndsAt = $stripeSubscription->trial_end 
-                            ? \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->trial_end) 
-                            : null;
-                            
-                        $endsAt = null;
-                        if ($stripeSubscription->cancel_at_period_end) {
-                            $endsAt = $stripeSubscription->trial_end && \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->trial_end)->isFuture()
-                                ? $trialEndsAt
-                                : \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->current_period_end);
-                        } elseif ($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at) {
-                            $endsAt = \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at);
-                        }
-                        
-                        $stripePrice = $isSinglePrice ? $firstItem->price->id : null;
-                        
-                        $subscription = $user->subscriptions()->updateOrCreate([
-                            'stripe_id' => $stripeSubscription->id,
-                        ], [
-                            'type' => $stripeSubscription->metadata['type'] ?? $stripeSubscription->metadata['name'] ?? 'default',
-                            'stripe_status' => $stripeSubscription->status,
-                            'stripe_price' => $stripePrice,
-                            'quantity' => $isSinglePrice ? ($firstItem->quantity ?? null) : null,
-                            'trial_ends_at' => $trialEndsAt,
-                            'ends_at' => $endsAt,
-                        ]);
-
-                        $pendingPriceId = null;
-                        if ($subscription->pending_plan_to) {
-                            $pendingPriceId = config("services.stripe.price_" . strtolower($subscription->pending_plan_to));
-                        }
-                        if ($stripePrice !== $pendingPriceId || ($subscription->pending_plan_until && \Illuminate\Support\Carbon::parse($subscription->pending_plan_until)->isPast())) {
-                            $subscription->update([
-                                'pending_plan_from' => null,
-                                'pending_plan_to' => null,
-                                'pending_plan_until' => null,
-                            ]);
-                        }
-
-                        $subscriptionItemIds = [];
-                        foreach ($stripeSubscription->items->data as $item) {
-                            $subscriptionItemIds[] = $item->id;
-                            $subscription->items()->updateOrCreate([
-                                'stripe_id' => $item->id,
-                            ], [
-                                'stripe_product' => $item->price->product,
-                                'stripe_price' => $item->price->id,
-                                'quantity' => $item->quantity ?? null,
-                            ]);
-                        }
-                        $subscription->items()->whereNotIn('stripe_id', $subscriptionItemIds)->delete();
-                    }
-                }
-            } catch (\Exception $e) {
-                logger()->error('Stripe sync failed in BillingController: ' . $e->getMessage());
-            }
-
+        if ($request->input('checkout') === 'success' || $request->has('sync')) {
+            $this->syncStripeData($user);
             return redirect()->route('billing.index');
         }
 
@@ -102,8 +38,8 @@ class BillingController extends Controller
         }
 
         $currentPlanName = $user->currentPlanName();
-
         $invoices = [];
+
         if ($user->stripe_id) {
             try {
                 $invoices = collect($user->invoices())->map(function ($invoice) {
@@ -153,7 +89,6 @@ class BillingController extends Controller
                 'on_grace_period' => $subscription?->onGracePeriod() ?? false,
                 'pending_downgrade' => $pendingDowngrade,
             ],
-
             'paymentMethod' => $user->pm_type ? [
                 'brand' => $user->pm_type,
                 'last_four' => $user->pm_last_four,
@@ -163,14 +98,18 @@ class BillingController extends Controller
         ]);
     }
 
-    public function checkout(Request $request, string $plan): \Symfony\Component\HttpFoundation\Response
+    /**
+     * Initiate a new Stripe Checkout session.
+     */
+    public function checkout(Request $request, string $plan): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         $normalizedPlan = strtolower(trim($plan));
         if ($normalizedPlan === 'free') {
             return redirect()->route('billing.index');
         }
 
-        $price = config("services.stripe.price_{$normalizedPlan}");
+        $stripeConfig = config('services.stripe') ?? [];
+        $price = $stripeConfig["price_{$normalizedPlan}"] ?? null;
 
         if (! $price) {
             return back()->withErrors([
@@ -178,8 +117,10 @@ class BillingController extends Controller
             ]);
         }
 
-        $checkout = $request->user()
-            ->newSubscription('default', $price)
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $checkout = $user->newSubscription('default', $price)
             ->checkout([
                 'success_url' => route('billing.index').'?checkout=success',
                 'cancel_url' => route('billing.index').'?checkout=cancelled',
@@ -188,18 +129,29 @@ class BillingController extends Controller
         return Inertia::location($checkout->url);
     }
 
+    /**
+     * Redirect to the customer billing portal.
+     */
     public function portal(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         if (!filled(config('cashier.key'))) {
             return back()->withErrors(['stripe' => 'Stripe is not configured.']);
         }
 
-        return Inertia::location($request->user()->billingPortalUrl(route('billing.index', ['sync' => 1])));
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        return Inertia::location($user->billingPortalUrl(route('billing.index', ['sync' => 1])));
     }
 
+    /**
+     * Cancel the active subscription plan.
+     */
     public function cancel(Request $request): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
+
         if ($user->subscribed('default')) {
             $subscription = $user->subscription('default');
             // If they had a pending paid-to-paid downgrade, clear it
@@ -214,10 +166,15 @@ class BillingController extends Controller
         return back();
     }
 
+    /**
+     * Resume a cancelled subscription while within its grace period.
+     */
     public function resume(Request $request): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $subscription = $user->subscription('default');
+
         if ($subscription && $subscription->onGracePeriod()) {
             $subscription->update([
                 'pending_plan_from' => null,
@@ -230,8 +187,12 @@ class BillingController extends Controller
         return back();
     }
 
+    /**
+     * Swap current plan to a target tier.
+     */
     public function swap(Request $request, string $plan): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $normalizedPlan = strtolower(trim($plan));
 
@@ -249,7 +210,8 @@ class BillingController extends Controller
             return back();
         }
 
-        $priceId = config("services.stripe.price_{$normalizedPlan}");
+        $stripeConfig = config('services.stripe') ?? [];
+        $priceId = $stripeConfig["price_{$normalizedPlan}"] ?? null;
 
         if (!$priceId) {
             return back()->withErrors(['plan' => "The {$plan} plan is not correctly configured in the system."]);
@@ -300,16 +262,100 @@ class BillingController extends Controller
         return $this->checkout($request, $plan);
     }
 
+    /**
+     * Download a dynamic invoice receipt file.
+     */
     public function downloadInvoice(Request $request, string $invoiceId)
     {
-        return $request->user()->downloadInvoice($invoiceId, [
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        return $user->downloadInvoice($invoiceId, [
             'vendor' => config('app.name'),
             'product' => 'Subscription',
         ]);
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Internal implementation helper to process low-level sync from Stripe.
+     */
+    private function syncStripeData($user): void
+    {
+        try {
+            $user->createOrGetStripeCustomer();
+            
+            if ($user->stripe_id) {
+                $user->updateDefaultPaymentMethodFromStripe();
+                
+                $stripeCustomer = $user->asStripeCustomer(['subscriptions']);
+                $stripeSubscriptions = $stripeCustomer->subscriptions->data ?? [];
+                
+                foreach ($stripeSubscriptions as $stripeSubscription) {
+                    $firstItem = $stripeSubscription->items->data[0];
+                    $isSinglePrice = count($stripeSubscription->items->data) === 1;
+                    
+                    $trialEndsAt = $stripeSubscription->trial_end 
+                        ? \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->trial_end) 
+                        : null;
+                        
+                    $endsAt = null;
+                    if ($stripeSubscription->cancel_at_period_end) {
+                        $endsAt = $stripeSubscription->trial_end && \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->trial_end)->isFuture()
+                            ? $trialEndsAt
+                            : \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->current_period_end);
+                    } elseif ($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at) {
+                        $endsAt = \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at);
+                    }
+                    
+                    $stripePrice = $isSinglePrice ? $firstItem->price->id : null;
+                    
+                    $subscription = $user->subscriptions()->updateOrCreate([
+                        'stripe_id' => $stripeSubscription->id,
+                    ], [
+                        'type' => $stripeSubscription->metadata['type'] ?? $stripeSubscription->metadata['name'] ?? 'default',
+                        'stripe_status' => $stripeSubscription->status,
+                        'stripe_price' => $stripePrice,
+                        'quantity' => $isSinglePrice ? ($firstItem->quantity ?? null) : null,
+                        'trial_ends_at' => $trialEndsAt,
+                        'ends_at' => $endsAt,
+                    ]);
+
+                    $pendingPriceId = null;
+                    if ($subscription->pending_plan_to) {
+                        $stripeConfig = config('services.stripe') ?? [];
+                        $pendingPriceId = $stripeConfig["price_" . strtolower($subscription->pending_plan_to)] ?? null;
+                    }
+
+                    if ($stripePrice !== $pendingPriceId || ($subscription->pending_plan_until && \Illuminate\Support\Carbon::parse($subscription->pending_plan_until)->isPast())) {
+                        $subscription->update([
+                            'pending_plan_from' => null,
+                            'pending_plan_to' => null,
+                            'pending_plan_until' => null,
+                        ]);
+                    }
+
+                    $subscriptionItemIds = [];
+                    foreach ($stripeSubscription->items->data as $item) {
+                        $subscriptionItemIds[] = $item->id;
+                        $subscription->items()->updateOrCreate([
+                            'stripe_id' => $item->id,
+                        ], [
+                            'stripe_product' => $item->price->product,
+                            'stripe_price' => $item->price->id,
+                            'quantity' => $item->quantity ?? null,
+                        ]);
+                    }
+                    $subscription->items()->whereNotIn('stripe_id', $subscriptionItemIds)->delete();
+                }
+            }
+        } catch (\Exception $e) {
+            logger()->error('Stripe sync failed in BillingController: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get platform tier structural metadata array.
+     * * @return array<int, array<string, mixed>>
      */
     private function plans(): array
     {
