@@ -5,7 +5,7 @@ import type { BreadcrumbItem } from '@/types';
 
 
 export default function AppLayout({
-    breadcrumbs = [],
+    breadcrumbs,
     children,
 }: {
     breadcrumbs?: BreadcrumbItem[];
