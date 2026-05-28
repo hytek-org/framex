@@ -13,8 +13,8 @@ class BillingController extends Controller
     {
         $user = $request->user();
 
-        // Sync fallback: if checkout=success or (user has stripe_id but no active subscription in local DB)
-        if ($request->get('checkout') === 'success' || ($user->stripe_id && !$user->subscribed('default'))) {
+        // Sync fallback: if checkout=success or sync parameter is present
+        if ($request->get('checkout') === 'success' || $request->has('sync')) {
             try {
                 $user->createOrGetStripeCustomer();
                 
@@ -194,7 +194,7 @@ class BillingController extends Controller
             return back()->withErrors(['stripe' => 'Stripe is not configured.']);
         }
 
-        return Inertia::location($request->user()->billingPortalUrl(route('billing.index')));
+        return Inertia::location($request->user()->billingPortalUrl(route('billing.index', ['sync' => 1])));
     }
 
     public function cancel(Request $request): RedirectResponse

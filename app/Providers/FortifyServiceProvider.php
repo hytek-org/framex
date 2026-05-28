@@ -35,6 +35,11 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
         $this->app->singleton(TwoFactorLoginResponseContract::class, TwoFactorLoginResponse::class);
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
+
+        $this->app->bind(
+            \Laravel\Passkeys\Actions\GenerateVerificationOptions::class,
+            \App\Actions\Fortify\GenerateVerificationOptions::class
+        );
     }
 
     /**
