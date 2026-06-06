@@ -115,7 +115,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
 
     Route::get('notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
-    Route::post('notifications/read', [NotificationCenterController::class, 'markAllRead'])->name('notifications.read');
+    Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [NotificationCenterController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('admin', AdminController::class)->name('admin.index');
 });
