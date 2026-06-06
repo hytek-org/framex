@@ -113,6 +113,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens.index');
     Route::post('api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');
     Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
+    Route::post('api-tokens/{token}/rotate', [ApiTokenController::class, 'rotate'])->name('api-tokens.rotate');
 
     Route::get('notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markRead'])->name('notifications.read');
