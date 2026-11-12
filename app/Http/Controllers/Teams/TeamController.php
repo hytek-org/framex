@@ -7,6 +7,7 @@ use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\DeleteTeamRequest;
 use App\Http\Requests\Teams\SaveTeamRequest;
+use App\Models\Membership;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,8 @@ class TeamController extends Controller
      */
     public function store(SaveTeamRequest $request, CreateTeam $createTeam): RedirectResponse
     {
+        Gate::authorize('create', Team::class);
+
         $team = $createTeam->handle($request->user(), $request->validated('name'));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Team created.')]);
@@ -47,6 +50,8 @@ class TeamController extends Controller
      */
     public function edit(Request $request, Team $team): Response
     {
+        Gate::authorize('view', $team);
+
         $user = $request->user();
 
         return Inertia::render('teams/edit', [
@@ -56,19 +61,19 @@ class TeamController extends Controller
                 'slug' => $team->slug,
                 'isPersonal' => $team->is_personal,
             ],
-            'members' => $team->members()->get()->map(fn ($member) => [
-                'id' => $member->id,
-                'name' => $member->name,
-                'email' => $member->email,
-                'avatar' => $member->avatar ?? null,
-                'role' => $member->pivot->role->value,
-                'role_label' => $member->pivot->role->label(),
-                'permissions' => collect(\App\Enums\TeamPermission::cases())
-                    ->mapWithKeys(fn ($permission) => [
-                        $permission->value => $member->hasTeamPermission($team, $permission)
-                    ])
-                    ->toArray(),
-            ]),
+            'members' => $team->members()->get()->map(function (User $member) {
+                /** @var Membership $membership */
+                $membership = $member->getRelation('pivot');
+
+                return [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'avatar' => $member->avatar ?? null,
+                    'role' => $membership->role->value,
+                    'role_label' => $membership->role->label(),
+                ];
+            }),
             'invitations' => $team->invitations()
                 ->whereNull('accepted_at')
                 ->get()
@@ -81,43 +86,6 @@ class TeamController extends Controller
                 ]),
             'permissions' => $user->toTeamPermissions($team),
             'availableRoles' => TeamRole::assignable(),
-            'manageablePermissions' => [
-                [
-                    'value' => 'blog:create',
-                    'label' => __('Create Blogs'),
-                    'description' => __('Allow member to create new blog posts.'),
-                ],
-                [
-                    'value' => 'blog:update',
-                    'label' => __('Update Blogs'),
-                    'description' => __('Allow member to update any blog posts.'),
-                ],
-                [
-                    'value' => 'blog:delete',
-                    'label' => __('Delete Blogs'),
-                    'description' => __('Allow member to delete blog posts.'),
-                ],
-                [
-                    'value' => 'team:update',
-                    'label' => __('Update Team'),
-                    'description' => __('Allow member to update team name and settings.'),
-                ],
-                [
-                    'value' => 'member:add',
-                    'label' => __('Add Members'),
-                    'description' => __('Allow member to add new members directly.'),
-                ],
-                [
-                    'value' => 'invitation:create',
-                    'label' => __('Invite Members'),
-                    'description' => __('Allow member to send email invitations to join the team.'),
-                ],
-                [
-                    'value' => 'invitation:cancel',
-                    'label' => __('Cancel Invitations'),
-                    'description' => __('Allow member to cancel pending team invitations.'),
-                ],
-            ],
         ]);
     }
 
@@ -151,6 +119,32 @@ class TeamController extends Controller
         $request->user()->switchTeam($team);
 
         return back();
+    }
+
+    /**
+     * Leave the specified team.
+     */
+    public function leave(Request $request, Team $team): RedirectResponse
+    {
+        Gate::authorize('leave', $team);
+
+        $user = $request->user();
+
+        $fallbackTeam = $user->isCurrentTeam($team)
+            ? $user->fallbackTeam($team)
+            : null;
+
+        $team->memberships()
+            ->where('user_id', $user->id)
+            ->delete();
+
+        if ($fallbackTeam) {
+            $user->switchTeam($fallbackTeam);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('You left the team ":name"', ['name' => $team->name])]);
+
+        return to_route('teams.index');
     }
 
     /**

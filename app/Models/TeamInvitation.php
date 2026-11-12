@@ -3,50 +3,33 @@
 namespace App\Models;
 
 use App\Enums\TeamRole;
-use App\Concerns\LogsActivity;
 use Database\Factories\TeamInvitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $code
+ * @property int $team_id
+ * @property string $email
+ * @property TeamRole $role
+ * @property int $invited_by
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $accepted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Team $team
+ * @property-read User $inviter
+ */
 #[Fillable(['team_id', 'email', 'role', 'invited_by', 'expires_at', 'accepted_at'])]
 class TeamInvitation extends Model
 {
     /** @use HasFactory<TeamInvitationFactory> */
-    use HasFactory, LogsActivity;
-
-     public function logActivityEvent(string $action): string
-    {
-        if ($action === 'updated' && $this->wasChanged('accepted_at') && $this->accepted_at !== null) {
-            return 'invitation.accepted';
-        }
-        if ($action === 'deleted' && isset($this->declined) && $this->declined) {
-            return 'invitation.declined';
-        }
-        return match ($action) {
-            'created' => 'invitation.sent',
-            'deleted' => 'invitation.cancelled',
-            default => "invitation.{$action}",
-        };
-    }
-
-    public function logActivityDescription(string $action): string
-    {
-        if ($action === 'updated' && $this->wasChanged('accepted_at') && $this->accepted_at !== null) {
-            return "Invitation for {$this->email} was accepted.";
-        }
-        if ($action === 'deleted' && isset($this->declined) && $this->declined) {
-            return "Invitation for {$this->email} was declined.";
-        }
-        $roleName = $this->role?->value ?? 'member';
-        return match ($action) {
-            'created' => "Invitation sent to {$this->email} with role {$roleName}.",
-            'deleted' => "Invitation for {$this->email} was cancelled.",
-            default => "Invitation for {$this->email} was {$action}.",
-        };
-    }
+    use HasFactory;
 
     /**
      * Bootstrap the model and its traits.
@@ -75,7 +58,7 @@ class TeamInvitation extends Model
     /**
      * Get the user who sent the invitation.
      *
-     * @return BelongsTo<Model, $this>
+     * @return BelongsTo<User, $this>
      */
     public function inviter(): BelongsTo
     {
@@ -95,7 +78,7 @@ class TeamInvitation extends Model
      */
     public function isPending(): bool
     {
-        return $this->accepted_at === null && !$this->isExpired();
+        return $this->accepted_at === null && ! $this->isExpired();
     }
 
     /**

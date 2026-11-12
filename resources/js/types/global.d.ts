@@ -2,7 +2,6 @@ import type { Auth } from '@/types/auth';
 import type { Team } from '@/types/teams';
 
 declare module 'react' {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface InputHTMLAttributes<T> {
         passwordrules?: string;
     }
@@ -11,18 +10,11 @@ declare module 'react' {
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
-                name: string;
+            name: string;
             auth: Auth;
             sidebarOpen: boolean;
             currentTeam: Team | null;
             teams: Team[];
-            locale: string;
-            isAdmin: boolean;
-            unreadNotificationsCount: number;
-            billing: {
-                plan: string;
-                subscribed: boolean;
-            } | null;
             [key: string]: unknown;
         };
     }

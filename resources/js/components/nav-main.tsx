@@ -9,12 +9,12 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
-export function NavMain({label="Platform" ,items = [] }: {label?:string, items: NavItem[] }) {
+export function NavMain({ items }: { items: NavItem[] }) {
     const { isCurrentUrl } = useCurrentUrl();
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>{label}</SidebarGroupLabel>
+            <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
@@ -26,11 +26,6 @@ export function NavMain({label="Platform" ,items = [] }: {label?:string, items: 
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
-                                {item.badge !== undefined && item.badge > 0 && (
-                                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
-                                        {item.badge}
-                                    </span>
-                                )}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

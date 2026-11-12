@@ -6,7 +6,6 @@ import DeleteTeamModal from '@/components/delete-team-modal';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import InviteMemberModal from '@/components/invite-member-modal';
-import MemberPermissionsModal from '@/components/member-permissions-modal';
 import RemoveMemberModal from '@/components/remove-member-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +41,6 @@ type Props = {
     invitations: TeamInvitation[];
     permissions: TeamPermissions;
     availableRoles: RoleOption[];
-    manageablePermissions: Array<{ value: string; label: string; description: string }>;
 };
 
 export default function TeamEdit({
@@ -51,7 +49,6 @@ export default function TeamEdit({
     invitations,
     permissions,
     availableRoles,
-    manageablePermissions,
 }: Props) {
     const getInitials = useInitials();
 
@@ -65,13 +62,6 @@ export default function TeamEdit({
         useState(false);
     const [invitationToCancel, setInvitationToCancel] =
         useState<TeamInvitation | null>(null);
-    const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
-    const [memberForPermissions, setMemberForPermissions] = useState<TeamMember | null>(null);
-
-    const confirmMemberPermissions = (member: TeamMember) => {
-        setMemberForPermissions(member);
-        setPermissionsDialogOpen(true);
-    };
 
     const pageTitle = useMemo(
         () =>
@@ -206,17 +196,6 @@ export default function TeamEdit({
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {member.role !== 'owner' && permissions.isOwner ? (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => confirmMemberPermissions(member)}
-                                            data-test="member-permissions-button"
-                                        >
-                                            Permissions
-                                        </Button>
-                                    ) : null}
-
                                     {member.role !== 'owner' &&
                                     permissions.canUpdateMember ? (
                                         <DropdownMenu>
@@ -389,15 +368,6 @@ export default function TeamEdit({
                 invitation={invitationToCancel}
                 open={cancelInvitationDialogOpen}
                 onOpenChange={setCancelInvitationDialogOpen}
-            />
-
-            <MemberPermissionsModal
-                key={memberForPermissions?.id ?? 'none'}
-                team={team}
-                member={memberForPermissions}
-                manageablePermissions={manageablePermissions}
-                open={permissionsDialogOpen}
-                onOpenChange={setPermissionsDialogOpen}
             />
 
             {permissions.canDeleteTeam && !team.isPersonal ? (
