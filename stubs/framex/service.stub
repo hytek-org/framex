@@ -1,0 +1,14 @@
+<?php
+
+namespace App\FrameX\Modules\{{namespace}}\Services;
+
+class {{class}}Service
+{
+    /**
+     * Perform service business logic.
+     */
+    public function execute(array $parameters = []): mixed
+    {
+        return true;
+    }
+}

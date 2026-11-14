@@ -13,4 +13,16 @@ enum TeamPermission: string
 
     case CreateInvitation = 'invitation:create';
     case CancelInvitation = 'invitation:cancel';
+
+    case CreateBlog = 'blog:create';
+    case UpdateBlog = 'blog:update';
+    case DeleteBlog = 'blog:delete';
+    case ManageBlogs = 'blog:manage';
+
+    case CreateContent = 'content:create';
+    case UpdateContent = 'content:update';
+    case PublishContent = 'content:publish';
+    case DeleteContent = 'content:delete';
+    case ManageContent = 'content:manage';
+    case ManageMedia = 'media:manage';
 }

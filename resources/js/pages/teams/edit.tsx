@@ -1,5 +1,5 @@
 import { Form, Head, router } from '@inertiajs/react';
-import { ChevronDown, Mail, UserPlus, X } from 'lucide-react';
+import { Check, ChevronDown, Mail, Shield, UserPlus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CancelInvitationModal from '@/components/cancel-invitation-modal';
 import DeleteTeamModal from '@/components/delete-team-modal';
@@ -319,6 +319,58 @@ export default function TeamEdit({
                         </div>
                     </div>
                 ) : null}
+
+                {/* Role Permissions Matrix */}
+                <div className="space-y-6">
+                    <Heading
+                        variant="small"
+                        title="Role Permissions Matrix"
+                        description="Granular capabilities and security policies assigned to each team role in FrameX"
+                    />
+
+                    <div className="rounded-lg border bg-card overflow-hidden">
+                        <div className="grid grid-cols-4 p-3.5 bg-muted/50 text-xs font-semibold text-muted-foreground border-b">
+                            <div>Permission Area</div>
+                            <div className="text-center">Owner</div>
+                            <div className="text-center">Admin</div>
+                            <div className="text-center">Member</div>
+                        </div>
+
+                        <div className="divide-y text-xs">
+                            {[
+                                { area: 'Team & Billing Settings', owner: true, admin: true, member: false },
+                                { area: 'Invite & Manage Members', owner: true, admin: true, member: false },
+                                { area: 'Delete Team Workspace', owner: true, admin: false, member: false },
+                                { area: 'Content Studio: Create & Draft', owner: true, admin: true, member: true },
+                                { area: 'Content Studio: Update & Edit', owner: true, admin: true, member: true },
+                                { area: 'Content Studio: Publish Live', owner: true, admin: true, member: false },
+                                { area: 'Content Studio: Delete & Bulk Actions', owner: true, admin: true, member: false },
+                                { area: 'Media Studio: Upload & Manage', owner: true, admin: true, member: false },
+                            ].map((row, idx) => (
+                                <div key={idx} className="grid grid-cols-4 p-3 items-center hover:bg-muted/30 transition-colors">
+                                    <div className="font-medium text-foreground">{row.area}</div>
+                                    <div className="flex justify-center">
+                                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                    </div>
+                                    <div className="flex justify-center">
+                                        {row.admin ? (
+                                            <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                        ) : (
+                                            <span className="text-muted-foreground/40 font-mono">—</span>
+                                        )}
+                                    </div>
+                                    <div className="flex justify-center">
+                                        {row.member ? (
+                                            <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                        ) : (
+                                            <span className="text-muted-foreground/40 font-mono">—</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
 
                 {permissions.canDeleteTeam && !team.isPersonal ? (
                     <div className="space-y-6">

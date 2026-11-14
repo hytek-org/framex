@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesUniqueTeamSlugs;
+use App\Concerns\LogsActivity;
 use App\Enums\TeamRole;
+use App\FrameX\Modules\Forms\Models\Form;
+use App\FrameX\Modules\Forms\Models\FormSubmission;
+use App\FrameX\Modules\Webhooks\Models\WebhookDelivery;
+use App\FrameX\Modules\Webhooks\Models\WebhookEndpoint;
 use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,7 +35,22 @@ use Illuminate\Support\Carbon;
 class Team extends Model
 {
     /** @use HasFactory<TeamFactory> */
-    use GeneratesUniqueTeamSlugs, HasFactory, SoftDeletes;
+    use GeneratesUniqueTeamSlugs, HasFactory, LogsActivity, SoftDeletes;
+
+    public function logActivityEvent(string $action): string
+    {
+        return "team.{$action}";
+    }
+
+    public function logActivityDescription(string $action): string
+    {
+        return match ($action) {
+            'created' => "Team '{$this->name}' was created.",
+            'updated' => "Team '{$this->name}' was updated.",
+            'deleted' => "Team '{$this->name}' was deleted.",
+            default => "Team '{$this->name}' was {$action}.",
+        };
+    }
 
     /**
      * Bootstrap the model and its traits.
@@ -93,6 +113,36 @@ class Team extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(TeamInvitation::class);
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(TeamFile::class);
+    }
+
+    public function forms(): HasMany
+    {
+        return $this->hasMany(Form::class);
+    }
+
+    public function formSubmissions(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
+
+    public function webhookEndpoints(): HasMany
+    {
+        return $this->hasMany(WebhookEndpoint::class);
+    }
+
+    public function webhookDeliveries(): HasMany
+    {
+        return $this->hasMany(WebhookDelivery::class);
     }
 
     /**

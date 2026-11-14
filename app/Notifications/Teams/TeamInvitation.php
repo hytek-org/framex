@@ -3,6 +3,7 @@
 namespace App\Notifications\Teams;
 
 use App\Models\TeamInvitation as TeamInvitationModel;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -15,7 +16,7 @@ class TeamInvitation extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      */
-    public function __construct(public TeamInvitationModel $invitation)
+    public function __construct(public TeamInvitationModel $invitation, public bool $sendEmail = true)
     {
         //
     }
@@ -27,7 +28,16 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $channels = [];
+        if ($notifiable instanceof User) {
+            $channels[] = 'database';
+        }
+
+        if ($this->sendEmail) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     /**
@@ -38,17 +48,22 @@ class TeamInvitation extends Notification implements ShouldQueue
         $team = $this->invitation->team;
         $inviter = $this->invitation->inviter;
 
-        return (new MailMessage)
-            ->subject(__("You've been invited to join :teamName", ['teamName' => $team->name]))
-            ->line(__(':inviterName has invited you to join the :teamName team.', [
+        $message = (new MailMessage)
+            ->subject(__("You've been invited to join :teamName", ['teamName' => $team->name]));
+
+        if ($notifiable instanceof User) {
+            $message->line(__(':inviterName has invited you to join the :teamName team. Log in to your account and navigate to your dashboard to view and respond to this invitation.', [
                 'inviterName' => $inviter->name,
                 'teamName' => $team->name,
-            ]))
-            ->line(__('Log in and visit your dashboard to accept or decline this invitation.'))
-            ->action(
-                __('Log in'),
-                route('login', ['invitation' => $this->invitation->code]),
-            );
+            ]));
+        } else {
+            $message->line(__(':inviterName has invited you to join the :teamName team. To accept this invitation, log in or create an account.', [
+                'inviterName' => $inviter->name,
+                'teamName' => $team->name,
+            ]));
+        }
+
+        return $message->action(__('Accept invitation'), route('login', ['invitation' => $this->invitation->code]));
     }
 
     /**
@@ -58,11 +73,20 @@ class TeamInvitation extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $team = $this->invitation->team;
+        $inviter = $this->invitation->inviter;
+
         return [
             'invitation_id' => $this->invitation->id,
             'team_id' => $this->invitation->team_id,
-            'team_name' => $this->invitation->team->name,
+            'team_name' => $team->name,
             'role' => $this->invitation->role->value,
+            'title' => __('Workspace Invitation'),
+            'body' => __(':inviterName has invited you to join the :teamName team.', [
+                'inviterName' => $inviter->name,
+                'teamName' => $team->name,
+            ]),
+            'action_url' => route('invitations.show', ['invitation' => $this->invitation->code]),
         ];
     }
 }

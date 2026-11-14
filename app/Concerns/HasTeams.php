@@ -175,6 +175,11 @@ trait HasTeams
             canRemoveMember: $role?->hasPermission(TeamPermission::RemoveMember) ?? false,
             canCreateInvitation: $role?->hasPermission(TeamPermission::CreateInvitation) ?? false,
             canCancelInvitation: $role?->hasPermission(TeamPermission::CancelInvitation) ?? false,
+            canCreateContent: $role?->hasPermission(TeamPermission::CreateContent) ?? false,
+            canUpdateContent: $role?->hasPermission(TeamPermission::UpdateContent) ?? false,
+            canPublishContent: $role?->hasPermission(TeamPermission::PublishContent) ?? false,
+            canDeleteContent: $role?->hasPermission(TeamPermission::DeleteContent) ?? false,
+            canManageMedia: $role?->hasPermission(TeamPermission::ManageMedia) ?? false,
         );
     }
 
