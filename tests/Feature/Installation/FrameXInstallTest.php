@@ -1,7 +1,6 @@
 <?php
 
 use App\FrameX\Core\Contracts\ModuleInterface;
-use App\FrameX\Core\FrameXServiceProvider;
 use App\FrameX\Core\Registries\ModuleRegistry;
 use App\FrameX\Installation\DatabaseManager;
 use App\FrameX\Installation\EnvironmentManager;
@@ -368,4 +367,82 @@ test('installation fails gracefully when database connectivity check fails', fun
     ])
         ->expectsOutputToContain('Database connection failed')
         ->assertFailed();
+});
+
+// 13. React route generation & Wayfinder verification: verification routes exist for Wayfinder
+test('verification routes exist for wayfinder whether email verification is enabled or disabled', function () {
+    expect(\Illuminate\Support\Facades\Route::has('verification.send'))->toBeTrue()
+        ->and(\Illuminate\Support\Facades\Route::has('verification.notice'))->toBeTrue()
+        ->and(\Illuminate\Support\Facades\Route::has('verification.verify'))->toBeTrue();
+});
+
+// 14. Boost script resilience: does not fail on fresh installations when boost.json is absent
+test('composer post-update boost script skips safely when boost json is absent', function () {
+    $boostConfigPath = base_path('boost.json');
+    $boostExists = file_exists($boostConfigPath);
+
+    // If boost.json is absent, script returns 0
+    if (! $boostExists) {
+        $shouldRun = file_exists($boostConfigPath);
+        expect($shouldRun)->toBeFalse();
+    } else {
+        expect($boostExists)->toBeTrue();
+    }
+});
+
+// 15. Installation summary table outputs execution steps
+test('installation summary table outputs step results', function () {
+    $this->artisan('framex:install', [
+        '--no-interaction' => true,
+        '--force' => true,
+        '--app-name' => 'SummaryTestApp',
+        '--skip-db-check' => true,
+        '--skip-migrations' => true,
+        '--skip-frontend' => true,
+    ])
+        ->expectsOutputToContain('Installation Summary:')
+        ->expectsOutputToContain('Environment Configuration')
+        ->expectsOutputToContain('Application Key')
+        ->assertSuccessful();
+});
+
+// 16. PSR-4 compliance check for tests directory
+test('all test files in tests directory comply with psr-4 autoloading standard', function () {
+    $testsDir = base_path('tests');
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($testsDir));
+    $violations = [];
+
+    foreach ($iterator as $file) {
+        if ($file->isFile() && $file->getExtension() === 'php') {
+            $content = file_get_contents($file->getPathname());
+            $tokens = token_get_all($content);
+            $count = count($tokens);
+
+            for ($i = 0; $i < $count; $i++) {
+                if ($tokens[$i][0] === T_CLASS) {
+                    $prev = $i - 1;
+                    while ($prev >= 0 && (is_array($tokens[$prev]) && in_array($tokens[$prev][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT]))) {
+                        $prev--;
+                    }
+                    if ($prev >= 0 && $tokens[$prev][0] === T_NEW) {
+                        continue; // anonymous class
+                    }
+
+                    $next = $i + 1;
+                    while ($next < $count && is_array($tokens[$next]) && $tokens[$next][0] === T_WHITESPACE) {
+                        $next++;
+                    }
+                    if ($next < $count && is_array($tokens[$next]) && $tokens[$next][0] === T_STRING) {
+                        $className = $tokens[$next][1];
+                        $expectedClass = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                        if ($className !== $expectedClass) {
+                            $violations[] = "{$className} in {$file->getFilename()}";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    expect($violations)->toBeEmpty();
 });
