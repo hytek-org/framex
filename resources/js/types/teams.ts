@@ -36,10 +36,32 @@ export type TeamPermissions = {
     canRemoveMember: boolean;
     canCreateInvitation: boolean;
     canCancelInvitation: boolean;
+    canCreateContent?: boolean;
+    canUpdateContent?: boolean;
+    canPublishContent?: boolean;
+    canDeleteContent?: boolean;
+    canManageMedia?: boolean;
     isOwner: boolean;
 };
 
 export type RoleOption = {
     value: TeamRole;
     label: string;
+};
+
+export type DashboardInvitation = {
+    code: string;
+    email?: string;
+    role: string;
+    inviterName?: string | null;
+    team: {
+        name: string;
+        slug: string;
+    };
+};
+
+export type TeamInvitationContext = {
+    code: string;
+    teamName: string;
+    email?: string;
 };

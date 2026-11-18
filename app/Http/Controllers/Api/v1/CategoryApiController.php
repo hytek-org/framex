@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Models\Category;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Http\JsonResponse;
 
 class CategoryApiController extends ApiController
 {
@@ -16,7 +16,7 @@ class CategoryApiController extends ApiController
     {
         $this->authorizeScope('categories:read');
 
-        $categories = Category::withCount(['blogs' => fn($q) => $q->where('team_id', $request->user()->current_team_id)])
+        $categories = Category::withCount(['blogs' => fn ($q) => $q->where('team_id', $request->user()->current_team_id)])
             ->orderBy('name')
             ->get();
 
@@ -31,9 +31,9 @@ class CategoryApiController extends ApiController
         $this->authorizeScope('categories:create');
 
         $validated = $request->validate([
-            'name'        => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:500',
-            'color'       => 'required|string|max:20',
+            'color' => 'required|string|max:20',
         ]);
 
         $slug = $this->uniqueSlug(Str::slug($validated['name']));
@@ -51,7 +51,7 @@ class CategoryApiController extends ApiController
         $this->authorizeScope('categories:read');
 
         $category = Category::where('slug', $slug)
-            ->withCount(['blogs' => fn($q) => $q->where('team_id', $request->user()->current_team_id)])
+            ->withCount(['blogs' => fn ($q) => $q->where('team_id', $request->user()->current_team_id)])
             ->firstOrFail();
 
         return response()->json($category);
@@ -67,9 +67,9 @@ class CategoryApiController extends ApiController
         $category = Category::where('slug', $slug)->firstOrFail();
 
         $validated = $request->validate([
-            'name'        => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:500',
-            'color'       => 'required|string|max:20',
+            'color' => 'required|string|max:20',
         ]);
 
         if (strtolower($validated['name']) !== strtolower($category->name)) {
@@ -92,7 +92,7 @@ class CategoryApiController extends ApiController
         $category->delete();
 
         return response()->json([
-            'message' => 'Category deleted successfully.'
+            'message' => 'Category deleted successfully.',
         ]);
     }
 
@@ -103,9 +103,10 @@ class CategoryApiController extends ApiController
     {
         $orig = $slug;
         $i = 1;
-        while (Category::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
-            $slug = $orig . '-' . $i++;
+        while (Category::where('slug', $slug)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $slug = $orig.'-'.$i++;
         }
+
         return $slug;
     }
 }

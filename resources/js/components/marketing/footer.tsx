@@ -15,7 +15,7 @@ const footerLinks = {
         { label: 'Contact', href: '/contact' },
     ],
     Resources: [
-        { label: 'Documentation', href: '#' },
+        { label: 'Documentation', href: '/docs' },
         { label: 'Changelog', href: '#' },
         { label: 'System Status', href: '#' },
         { label: 'GitHub', href: 'https://github.com' },

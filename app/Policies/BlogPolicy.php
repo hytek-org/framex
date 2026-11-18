@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
+use App\Enums\TeamPermission;
 use App\Models\Blog;
 use App\Models\User;
-use App\Enums\TeamPermission;
 
 class BlogPolicy
 {
@@ -14,6 +14,7 @@ class BlogPolicy
     public function view(User $user, Blog $blog): bool
     {
         $team = $user->currentTeam;
+
         return $team && $blog->team_id === $team->id;
     }
 
@@ -35,7 +36,7 @@ class BlogPolicy
     {
         $team = $user->currentTeam;
 
-        if (!$team || $blog->team_id !== $team->id) {
+        if (! $team || $blog->team_id !== $team->id) {
             return false;
         }
 
@@ -51,7 +52,7 @@ class BlogPolicy
     {
         $team = $user->currentTeam;
 
-        if (!$team || $blog->team_id !== $team->id) {
+        if (! $team || $blog->team_id !== $team->id) {
             return false;
         }
 

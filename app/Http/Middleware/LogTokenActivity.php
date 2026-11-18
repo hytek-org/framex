@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ActivityLog;
+use App\Models\TokenActivityLog;
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\TokenActivityLog;
-use App\Models\ActivityLog;
 use Symfony\Component\HttpFoundation\Response;
 
 class LogTokenActivity
@@ -24,8 +24,8 @@ class LogTokenActivity
     public function terminate(Request $request, Response $response): void
     {
         $user = $request->user();
-        
-        if ($user && $token = $user->currentAccessToken()) {
+
+        if ($user && ($token = $user->currentAccessToken()) && method_exists($token, 'forceFill')) {
             $lastUsedWasNull = ($token->last_used_at === null);
 
             // Update token metadata

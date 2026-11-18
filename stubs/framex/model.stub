@@ -1,0 +1,29 @@
+<?php
+
+namespace App\FrameX\Modules\{{namespace}}\Models;
+
+use App\Models\Team;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class {{class}} extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'team_id',
+        'name',
+        'slug',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+}

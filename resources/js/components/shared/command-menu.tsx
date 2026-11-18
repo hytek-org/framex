@@ -3,13 +3,18 @@ import {
     BookOpen,
     CreditCard,
     FileText,
+    Folder,
+    Globe,
+    Image as ImageIcon,
     Key,
     LayoutGrid,
     Loader2,
     LogOut,
     Moon,
+    PenTool,
     Search,
     Settings,
+    Sparkles,
     Sun,
     Tags,
     Users,
@@ -31,11 +36,14 @@ import { toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 
 interface SearchResults {
+    contents?: any[];
+    media?: any[];
     blogs: any[];
     files: any[];
     categories: any[];
     tags: any[];
     members: any[];
+    quickActions?: any[];
 }
 
 export function CommandMenu() {
@@ -43,11 +51,14 @@ export function CommandMenu() {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [results, setResults] = useState<SearchResults>({
+        contents: [],
+        media: [],
         blogs: [],
         files: [],
         categories: [],
         tags: [],
         members: [],
+        quickActions: [],
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -104,7 +115,16 @@ export function CommandMenu() {
                 if (!response.ok) throw new Error('Search failed');
                 const data = await response.json();
                 if (active) {
-                    setResults(data);
+                    setResults({
+                        contents: data.contents || [],
+                        media: data.media || [],
+                        blogs: data.blogs || [],
+                        files: data.files || [],
+                        categories: data.categories || [],
+                        tags: data.tags || [],
+                        members: data.members || [],
+                        quickActions: data.quickActions || [],
+                    });
                 }
             } catch (err) {
                 console.error('Workspace search failed', err);
@@ -144,11 +164,14 @@ export function CommandMenu() {
     }, [appearance, updateAppearance]);
 
     const hasResults =
+        (results.contents?.length ?? 0) > 0 ||
+        (results.media?.length ?? 0) > 0 ||
         results.blogs.length > 0 ||
         results.files.length > 0 ||
         results.categories.length > 0 ||
         results.tags.length > 0 ||
-        results.members.length > 0;
+        results.members.length > 0 ||
+        (results.quickActions?.length ?? 0) > 0;
 
     return (
         <CommandDialog open={open} onOpenChange={setOpen}>
@@ -156,7 +179,7 @@ export function CommandMenu() {
                 <CommandInput
                     value={searchQuery}
                     onValueChange={setSearchQuery}
-                    placeholder="Type to search files, blogs, members, or settings…"
+                    placeholder="Search content, media assets, members, actions (⌘K)..."
                 />
                 {isLoading && (
                     <div className="absolute right-4 top-3.5 flex items-center">
@@ -169,45 +192,158 @@ export function CommandMenu() {
                     <CommandEmpty>No results found for "{searchQuery}".</CommandEmpty>
                 )}
 
-                {/* --- Dynamic Workspace Search Results --- */}
-                {results.blogs.length > 0 && (
-                    <CommandGroup heading="Blogs & Posts">
-                        {results.blogs.map((blog) => (
+                {/* --- Quick Actions --- */}
+                {results.quickActions && results.quickActions.length > 0 && (
+                    <CommandGroup heading="Platform Quick Actions">
+                        {results.quickActions.map((action) => (
                             <CommandItem
-                                key={blog.id}
-                                value={`blog-${blog.id}-${blog.title}`}
-                                onSelect={() =>
-                                    navigate(
-                                        `/${currentTeam.slug}/manage/blogs/${blog.slug}/edit`,
-                                    )
-                                }
-                                className="flex items-center justify-between py-3"
+                                key={action.id}
+                                value={`action-${action.id}-${action.title}-${action.description}`}
+                                onSelect={() => navigate(action.url)}
+                                className="flex items-center justify-between py-2.5"
                             >
-                                <div className="flex items-center gap-2">
-                                    <BookOpen className="h-4 w-4 text-emerald-500 shrink-0" />
+                                <div className="flex items-center gap-2.5">
+                                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-neutral-900 dark:text-neutral-100">
-                                            {blog.title}
+                                        <span className="font-medium text-foreground">
+                                            {action.title}
                                         </span>
-                                        {blog.excerpt && (
-                                            <span className="text-xs text-neutral-400 line-clamp-1">
-                                                {blog.excerpt}
-                                            </span>
-                                        )}
+                                        <span className="text-xs text-muted-foreground">
+                                            {action.description}
+                                        </span>
                                     </div>
                                 </div>
-                                <span
-                                    className={`ml-2 text-[10px] px-2 py-0.5 rounded font-semibold tracking-wide shrink-0 ${
-                                        blog.is_published
-                                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
-                                            : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50'
-                                    }`}
-                                >
-                                    {blog.is_published ? 'Published' : 'Draft'}
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">
+                                    {action.category}
                                 </span>
                             </CommandItem>
                         ))}
                     </CommandGroup>
+                )}
+
+                {/* --- Content Studio Entities --- */}
+                {results.contents && results.contents.length > 0 && (
+                    <>
+                        <CommandSeparator />
+                        <CommandGroup heading="FrameX Content Studio">
+                            {results.contents.map((content) => (
+                                <CommandItem
+                                    key={`content-${content.id}`}
+                                    value={`content-${content.id}-${content.title}-${content.contentType?.name || ''}`}
+                                    onSelect={() => {
+                                        if (!currentTeam) return;
+                                        navigate(`/${currentTeam.slug}/content/${content.slug}/edit`);
+                                    }}
+                                    className="flex items-center justify-between py-2.5"
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <PenTool className="h-4 w-4 text-primary shrink-0" />
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="font-medium text-foreground truncate">
+                                                {content.title}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground truncate">
+                                                {content.contentType?.name || 'Content'} · /{content.slug}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground border border-border">
+                                            {content.status}
+                                        </span>
+                                    </div>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </>
+                )}
+
+                {/* --- Media Studio Assets --- */}
+                {results.media && results.media.length > 0 && (
+                    <>
+                        <CommandSeparator />
+                        <CommandGroup heading="Media Studio Assets">
+                            {results.media.map((item) => (
+                                <CommandItem
+                                    key={`media-${item.id}`}
+                                    value={`media-${item.id}-${item.original_name || item.filename}`}
+                                    onSelect={() => {
+                                        if (!currentTeam) return;
+                                        navigate(`/${currentTeam.slug}/media`);
+                                    }}
+                                    className="flex items-center justify-between py-2.5"
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        {item.mime_type?.startsWith('image/') && item.url ? (
+                                            <img
+                                                src={item.url}
+                                                alt=""
+                                                className="h-6 w-6 rounded object-cover border border-border shrink-0"
+                                            />
+                                        ) : (
+                                            <ImageIcon className="h-4 w-4 text-blue-500 shrink-0" />
+                                        )}
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="font-medium text-foreground truncate">
+                                                {item.original_name || item.filename}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                {item.mime_type} · {(item.size / 1024).toFixed(0)} KB
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                        Media
+                                    </span>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </>
+                )}
+
+                {/* --- Dynamic Workspace Search Results --- */}
+                {results.blogs.length > 0 && (
+                    <>
+                        <CommandSeparator />
+                        <CommandGroup heading="Blogs & Posts">
+                            {results.blogs.map((blog) => (
+                                <CommandItem
+                                    key={blog.id}
+                                    value={`blog-${blog.id}-${blog.title}`}
+                                    onSelect={() => {
+                                        if (!currentTeam) return;
+                                        navigate(
+                                            `/${currentTeam.slug}/manage/blogs/${blog.slug}/edit`,
+                                        );
+                                    }}
+                                    className="flex items-center justify-between py-3"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <BookOpen className="h-4 w-4 text-emerald-500 shrink-0" />
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                                {blog.title}
+                                            </span>
+                                            {blog.excerpt && (
+                                                <span className="text-xs text-neutral-400 line-clamp-1">
+                                                    {blog.excerpt}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span
+                                        className={`ml-2 text-[10px] px-2 py-0.5 rounded font-semibold tracking-wide shrink-0 ${
+                                            blog.is_published
+                                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
+                                                : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50'
+                                        }`}
+                                    >
+                                        {blog.is_published ? 'Published' : 'Draft'}
+                                    </span>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </>
                 )}
 
                 {results.files.length > 0 && (
@@ -218,7 +354,10 @@ export function CommandMenu() {
                                 <CommandItem
                                     key={file.id}
                                     value={`file-${file.id}-${file.name}`}
-                                    onSelect={() => navigate(`/${currentTeam.slug}/files`)}
+                                    onSelect={() => {
+                                        if (!currentTeam) return;
+                                        navigate(`/${currentTeam.slug}/files`);
+                                    }}
                                     className="flex items-center justify-between py-3"
                                 >
                                     <div className="flex items-center gap-2">
@@ -253,9 +392,10 @@ export function CommandMenu() {
                                 <CommandItem
                                     key={category.id}
                                     value={`category-${category.id}-${category.name}`}
-                                    onSelect={() =>
-                                        navigate(`/${currentTeam.slug}/manage/categories`)
-                                    }
+                                    onSelect={() => {
+                                        if (!currentTeam) return;
+                                        navigate(`/${currentTeam.slug}/manage/categories`);
+                                    }}
                                     className="flex items-center justify-between py-2.5"
                                 >
                                     <div className="flex items-center gap-2">
@@ -278,7 +418,10 @@ export function CommandMenu() {
                                 <CommandItem
                                     key={tag.id}
                                     value={`tag-${tag.id}-${tag.name}`}
-                                    onSelect={() => navigate(`/${currentTeam.slug}/manage/tags`)}
+                                    onSelect={() => {
+                                        if (!currentTeam) return;
+                                        navigate(`/${currentTeam.slug}/manage/tags`);
+                                    }}
                                     className="flex items-center justify-between py-2.5"
                                 >
                                     <div className="flex items-center gap-2">

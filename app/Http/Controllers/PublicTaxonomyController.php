@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Blog;
 use App\Models\Category;
 use App\Models\Tag;
-use App\Models\Blog;
 use Inertia\Inertia;
 
 class PublicTaxonomyController extends Controller
@@ -30,7 +30,7 @@ class PublicTaxonomyController extends Controller
 
         return Inertia::render('categories/index', [
             'categories' => $categories,
-            'total'      => $total,
+            'total' => $total,
         ]);
     }
 
@@ -46,7 +46,7 @@ class PublicTaxonomyController extends Controller
 
         return Inertia::render('categories/show', [
             'category' => $category,
-            'blogs'    => $blogs,
+            'blogs' => $blogs,
         ]);
     }
 
@@ -61,7 +61,7 @@ class PublicTaxonomyController extends Controller
         $total = Blog::where('is_published', true)->count();
 
         return Inertia::render('tags/index', [
-            'tags'  => $tags,
+            'tags' => $tags,
             'total' => $total,
         ]);
     }
@@ -77,7 +77,7 @@ class PublicTaxonomyController extends Controller
             ->paginate(12);
 
         return Inertia::render('tags/show', [
-            'tag'   => $tag,
+            'tag' => $tag,
             'blogs' => $blogs,
         ]);
     }

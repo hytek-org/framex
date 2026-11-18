@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 
 class PersonalAccessToken extends SanctumPersonalAccessToken
 {

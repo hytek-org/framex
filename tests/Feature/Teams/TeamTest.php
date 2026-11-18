@@ -3,6 +3,8 @@
 use App\Enums\TeamRole;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('the teams index page can be rendered', function () {
     $user = User::factory()->create();
@@ -28,6 +30,24 @@ test('teams can be created', function () {
     $this->assertDatabaseHas('teams', [
         'name' => 'Test Team',
         'is_personal' => false,
+    ]);
+});
+
+test('teams cannot be created when the policy denies it', function () {
+    $user = User::factory()->create();
+
+    Gate::before(fn ($user, string $ability) => $ability === 'create' ? false : null);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('teams.store'), [
+            'name' => 'Test Team',
+        ]);
+
+    $response->assertForbidden();
+
+    $this->assertDatabaseMissing('teams', [
+        'name' => 'Test Team',
     ]);
 });
 
@@ -60,7 +80,13 @@ test('the team edit page can be rendered', function () {
         ->actingAs($user)
         ->get(route('teams.edit', $team));
 
-    $response->assertOk();
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('teams/edit')
+            ->where('members.0.role', TeamRole::Owner->value)
+            ->where('members.0.role_label', TeamRole::Owner->label()),
+        );
 });
 
 test('teams can be updated by owners', function () {
@@ -212,6 +238,89 @@ test('deleting non current team leaves current team unchanged', function () {
     ]);
 
     expect($user->fresh()->current_team_id)->toEqual($personalTeam->id);
+});
+
+test('members can leave non personal teams', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+    $team->members()->attach($member, ['role' => TeamRole::Member->value]);
+
+    $response = $this
+        ->actingAs($member)
+        ->delete(route('teams.leave', $team));
+
+    $response->assertRedirect(route('teams.index'));
+    $response->assertInertiaFlash('toast', ['type' => 'success', 'message' => "You left the team \"{$team->name}\""]);
+
+    expect($member->fresh()->belongsToTeam($team))->toBeFalse();
+});
+
+test('leaving current team switches to alphabetically first remaining team', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create(['name' => 'Mike']);
+
+    $zuluTeam = Team::factory()->create(['name' => 'Zulu Team']);
+    $zuluTeam->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+    $zuluTeam->members()->attach($member, ['role' => TeamRole::Member->value]);
+
+    $alphaTeam = Team::factory()->create(['name' => 'Alpha Team']);
+    $alphaTeam->members()->attach($member, ['role' => TeamRole::Member->value]);
+
+    $betaTeam = Team::factory()->create(['name' => 'Beta Team']);
+    $betaTeam->members()->attach($member, ['role' => TeamRole::Member->value]);
+
+    $member->update(['current_team_id' => $zuluTeam->id]);
+
+    $response = $this
+        ->actingAs($member)
+        ->delete(route('teams.leave', $zuluTeam));
+
+    $response->assertRedirect(route('teams.index'));
+
+    expect($member->fresh()->belongsToTeam($zuluTeam))->toBeFalse();
+    expect($member->fresh()->current_team_id)->toEqual($alphaTeam->id);
+});
+
+test('personal teams cannot be left', function () {
+    $user = User::factory()->create();
+    $personalTeam = $user->personalTeam();
+
+    $response = $this
+        ->actingAs($user)
+        ->delete(route('teams.leave', $personalTeam));
+
+    $response->assertForbidden();
+
+    expect($user->fresh()->belongsToTeam($personalTeam))->toBeTrue();
+});
+
+test('team owners cannot leave their team', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    $response = $this
+        ->actingAs($owner)
+        ->delete(route('teams.leave', $team));
+
+    $response->assertForbidden();
+
+    expect($owner->fresh()->belongsToTeam($team))->toBeTrue();
+});
+
+test('users cannot leave teams they dont belong to', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->delete(route('teams.leave', $team));
+
+    $response->assertForbidden();
 });
 
 test('deleting team switches other affected users to their personal team', function () {

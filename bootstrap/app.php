@@ -2,7 +2,9 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\LogTokenActivity;
 use App\Http\Middleware\SetTeamUrlDefaults;
+use App\Http\Middleware\TeamScopedApiTokenMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,10 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             SetTeamUrlDefaults::class,
         ]);
-
         $middleware->alias([
-            'api.team' => \App\Http\Middleware\TeamScopedApiTokenMiddleware::class,
-            'api.log' => \App\Http\Middleware\LogTokenActivity::class,
+            'api.team' => TeamScopedApiTokenMiddleware::class,
+            'api.log' => LogTokenActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

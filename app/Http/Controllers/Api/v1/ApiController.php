@@ -12,10 +12,10 @@ class ApiController extends Controller
      */
     protected function authorizeScope(string $scope): void
     {
-        if (!request()->user()->tokenCan($scope)) {
+        if (! request()->user()->tokenCan($scope)) {
             throw new HttpResponseException(
                 response()->json([
-                    'message' => "Forbidden. Token lacks access to scope '{$scope}'."
+                    'message' => "Forbidden. Token lacks access to scope '{$scope}'.",
                 ], 403)
             );
         }

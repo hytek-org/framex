@@ -4,15 +4,15 @@ namespace App\Providers;
 
 use App\Events\TeamActivityRecorded;
 use App\Models\ActivityLog;
+use App\Models\PersonalAccessToken;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use Laravel\Cashier\Subscription;
-use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,8 +32,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->registerActivityLogListeners();
-        
-        \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(\App\Models\PersonalAccessToken::class);
+
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
     }
 
     /**
@@ -59,11 +59,11 @@ class AppServiceProvider extends ServiceProvider
                         TeamActivityRecorded::dispatch($activity);
                     }
                 } catch (Throwable $e) {
-                    Log::warning('Failed to log API token creation: ' . $e->getMessage());
+                    Log::warning('Failed to log API token creation: '.$e->getMessage());
                 }
             });
 
-           PersonalAccessToken::deleted(function ($token) {
+            PersonalAccessToken::deleted(function ($token) {
                 try {
                     if (Auth::check()) {
                         $user = Auth::user();
@@ -79,7 +79,7 @@ class AppServiceProvider extends ServiceProvider
                         TeamActivityRecorded::dispatch($activity);
                     }
                 } catch (Throwable $e) {
-                    Log::warning('Failed to log API token deletion: ' . $e->getMessage());
+                    Log::warning('Failed to log API token deletion: '.$e->getMessage());
                 }
             });
         }
@@ -103,7 +103,7 @@ class AppServiceProvider extends ServiceProvider
                         TeamActivityRecorded::dispatch($activity);
                     }
                 } catch (Throwable $e) {
-                   Log::warning('Failed to log subscription creation: ' . $e->getMessage());
+                    Log::warning('Failed to log subscription creation: '.$e->getMessage());
                 }
             });
 
@@ -124,7 +124,7 @@ class AppServiceProvider extends ServiceProvider
                         TeamActivityRecorded::dispatch($activity);
                     }
                 } catch (Throwable $e) {
-                   Log::warning('Failed to log subscription update: ' . $e->getMessage());
+                    Log::warning('Failed to log subscription update: '.$e->getMessage());
                 }
             });
         }

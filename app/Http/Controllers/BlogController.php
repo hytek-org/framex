@@ -6,11 +6,11 @@ use App\Models\Blog;
 use App\Models\Category;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Gate;
 
 class BlogController extends Controller
 {
@@ -21,15 +21,15 @@ class BlogController extends Controller
             ->latest('published_at');
 
         if ($request->filled('category')) {
-            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
+            $query->whereHas('category', fn ($q) => $q->where('slug', $request->category));
         }
         if ($request->filled('tag')) {
-            $query->whereHas('tags', fn($q) => $q->where('slug', $request->tag));
+            $query->whereHas('tags', fn ($q) => $q->where('slug', $request->tag));
         }
 
         $blogs = $query->paginate(12)->withQueryString();
-        $categories = Category::query()->withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
-        $tags = Tag::query()->withCount(['blogs' => fn($q) => $q->where('is_published', true)])->get();
+        $categories = Category::query()->withCount(['blogs' => fn ($q) => $q->where('is_published', true)])->get();
+        $tags = Tag::query()->withCount(['blogs' => fn ($q) => $q->where('is_published', true)])->get();
 
         return Inertia::render('blogs/index', compact('blogs', 'categories', 'tags'));
     }
@@ -57,7 +57,7 @@ class BlogController extends Controller
             ->with(['user' => fn ($q) => $q->select('id', 'name', 'email'), 'category', 'tags'])
             ->latest()
             ->paginate(15);
-            
+
         return Inertia::render('manage/blogs/index', ['blogs' => $blogs]);
     }
 
@@ -67,7 +67,7 @@ class BlogController extends Controller
 
         return Inertia::render('manage/blogs/create', [
             'categories' => Category::query()->orderBy('name', 'asc')->get(),
-            'tags'       => Tag::query()->orderBy('name', 'asc')->get(),
+            'tags' => Tag::query()->orderBy('name', 'asc')->get(),
         ]);
     }
 
@@ -76,13 +76,13 @@ class BlogController extends Controller
         Gate::authorize('create', Blog::class);
 
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'excerpt'     => 'nullable|string',
-            'content'     => 'nullable|string',
-            'is_published'=> 'boolean',
+            'title' => 'required|string|max:255',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
+            'is_published' => 'boolean',
             'category_id' => 'nullable|exists:categories,id',
-            'tag_ids'     => 'nullable|array',
-            'tag_ids.*'   => 'exists:tags,id',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
             'cover_image' => 'nullable|image|max:5120',
         ]);
 
@@ -94,19 +94,19 @@ class BlogController extends Controller
         }
 
         $blog = Blog::query()->create([
-            'title'        => $validated['title'],
-            'slug'         => $slug,
-            'excerpt'      => $validated['excerpt'] ?? null,
-            'content'      => $validated['content'] ?? null,
-            'cover_image'  => $imagePath,
+            'title' => $validated['title'],
+            'slug' => $slug,
+            'excerpt' => $validated['excerpt'] ?? null,
+            'content' => $validated['content'] ?? null,
+            'cover_image' => $imagePath,
             'is_published' => $request->boolean('is_published'),
             'published_at' => $request->boolean('is_published') ? now() : null,
-            'user_id'      => Auth::id(),
-            'team_id'      => Auth::user()->current_team_id ?? null,
-            'category_id'  => $validated['category_id'] ?? null,
+            'user_id' => Auth::id(),
+            'team_id' => Auth::user()->current_team_id ?? null,
+            'category_id' => $validated['category_id'] ?? null,
         ]);
 
-        if (!empty($validated['tag_ids'])) {
+        if (! empty($validated['tag_ids'])) {
             $blog->tags()->sync($validated['tag_ids']);
         }
 
@@ -118,7 +118,7 @@ class BlogController extends Controller
         Gate::authorize('view', $blog);
 
         $blog->load(['user' => fn ($q) => $q->select('id', 'name', 'email'), 'category', 'tags']);
-        
+
         return Inertia::render('manage/blogs/show', ['blog' => $blog]);
     }
 
@@ -127,11 +127,11 @@ class BlogController extends Controller
         Gate::authorize('update', $blog);
 
         $blog->load(['tags']);
-        
+
         return Inertia::render('manage/blogs/edit', [
-            'blog'       => $blog,
+            'blog' => $blog,
             'categories' => Category::query()->orderBy('name', 'asc')->get(),
-            'tags'       => Tag::query()->orderBy('name', 'asc')->get(),
+            'tags' => Tag::query()->orderBy('name', 'asc')->get(),
         ]);
     }
 
@@ -140,13 +140,13 @@ class BlogController extends Controller
         Gate::authorize('update', $blog);
 
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'excerpt'     => 'nullable|string',
-            'content'     => 'nullable|string',
-            'is_published'=> 'boolean',
+            'title' => 'required|string|max:255',
+            'excerpt' => 'nullable|string',
+            'content' => 'nullable|string',
+            'is_published' => 'boolean',
             'category_id' => 'nullable|exists:categories,id',
-            'tag_ids'     => 'nullable|array',
-            'tag_ids.*'   => 'exists:tags,id',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
             'cover_image' => 'nullable|image|max:5120',
         ]);
 
@@ -161,16 +161,16 @@ class BlogController extends Controller
             $blog->cover_image = $request->file('cover_image')->store('blogs', 'public');
         }
 
-        if ($request->boolean('is_published') && !$blog->is_published) {
+        if ($request->boolean('is_published') && ! $blog->is_published) {
             $blog->published_at = now();
         }
 
         $blog->fill([
-            'title'        => $validated['title'],
-            'excerpt'      => $validated['excerpt'] ?? null,
-            'content'      => $validated['content'] ?? null,
+            'title' => $validated['title'],
+            'excerpt' => $validated['excerpt'] ?? null,
+            'content' => $validated['content'] ?? null,
             'is_published' => $request->boolean('is_published'),
-            'category_id'  => $validated['category_id'] ?? null,
+            'category_id' => $validated['category_id'] ?? null,
         ])->save();
 
         $blog->tags()->sync($validated['tag_ids'] ?? []);
@@ -186,22 +186,22 @@ class BlogController extends Controller
         if ($blog->cover_image) {
             Storage::disk('public')->delete($blog->cover_image);
         }
-        
+
         $blog->tags()->sync([]);
         Blog::destroy($blog->id);
-        
+
         return redirect()->back()->with('success', 'Blog post deleted.');
     }
 
     private function uniqueSlug(string $slug, ?int $ignoreId = null): string
     {
-        $orig = $slug; 
+        $orig = $slug;
         $i = 1;
-        
-        while (Blog::query()->where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
-            $slug = $orig . '-' . $i++;
+
+        while (Blog::query()->where('slug', $slug)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $slug = $orig.'-'.$i++;
         }
-        
+
         return $slug;
     }
 }

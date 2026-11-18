@@ -3,13 +3,17 @@ import {
     Activity,
     Bell,
     BookOpen,
+    ClipboardList,
     CreditCard,
     FileText,
     FolderOpen,
+    Image as ImageIcon,
     Key,
     LayoutGrid,
     Settings,
     Tags,
+    TrendingUp,
+    Webhook,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -53,6 +57,16 @@ export function AppSidebar() {
             icon: FileText,
         },
         {
+            title: 'Content Studio',
+            href: `${teamPrefix}/content`,
+            icon: BookOpen,
+        },
+        {
+            title: 'Media Studio',
+            href: `${teamPrefix}/media`,
+            icon: ImageIcon,
+        },
+        {
             title: 'Blogs',
             href: `${teamPrefix}/manage/blogs`,
             icon: BookOpen,
@@ -66,6 +80,21 @@ export function AppSidebar() {
             title: 'Tags',
             href: `${teamPrefix}/manage/tags`,
             icon: Tags,
+        },
+        {
+            title: 'Forms',
+            href: `${teamPrefix}/forms`,
+            icon: ClipboardList,
+        },
+        {
+            title: 'Webhooks',
+            href: `${teamPrefix}/webhooks`,
+            icon: Webhook,
+        },
+        {
+            title: 'Analytics',
+            href: `${teamPrefix}/analytics`,
+            icon: TrendingUp,
         },
     ];
 

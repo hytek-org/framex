@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Concerns\HasTeams;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -18,6 +18,24 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property Carbon|null $email_verified_at
+ * @property string $password
+ * @property string|null $two_factor_secret
+ * @property string|null $two_factor_recovery_codes
+ * @property Carbon|null $two_factor_confirmed_at
+ * @property string|null $remember_token
+ * @property int|null $current_team_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Team|null $currentTeam
+ * @property-read Collection<int, Team> $ownedTeams
+ * @property-read Collection<int, Membership> $teamMemberships
+ * @property-read Collection<int, Team> $teams
+ */
 #[Fillable(['name', 'email', 'password', 'current_team_id', 'is_admin', 'locale'])]
 #[Hidden([
     'password',
@@ -27,9 +45,9 @@ use Laravel\Sanctum\HasApiTokens;
     'stripe_id',
     'pm_type',
     'pm_last_four',
-    'trial_ends_at'
+    'trial_ends_at',
 ])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use Billable, HasApiTokens, HasFactory, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -67,12 +85,12 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function currentPlanName(): string
     {
-        if (!$this->subscribed('default')) {
+        if (! $this->subscribed('default')) {
             return 'Free';
         }
 
         $subscription = $this->subscription('default');
-        if (!$subscription) {
+        if (! $subscription) {
             return 'Free';
         }
 

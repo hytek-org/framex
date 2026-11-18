@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Concerns\LogsActivity;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    use LogsActivity;
+    use HasFactory, LogsActivity;
 
     public function logActivityEvent(string $action): string
     {

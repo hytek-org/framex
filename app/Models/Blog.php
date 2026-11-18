@@ -3,17 +3,24 @@
 namespace App\Models;
 
 use App\Concerns\LogsActivity;
+use App\FrameX\Modules\ContentStudio\Models\Content;
+use App\Observers\BlogObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
+#[ObservedBy([BlogObserver::class])]
 class Blog extends Model
 {
-    use LogsActivity;
+    use HasFactory, LogsActivity;
 
     public function logActivityEvent(string $action): string
     {
         if ($action === 'updated' && $this->wasChanged('is_published') && $this->is_published) {
             return 'blog.published';
         }
+
         return "blog.{$action}";
     }
 
@@ -22,6 +29,7 @@ class Blog extends Model
         if ($action === 'updated' && $this->wasChanged('is_published') && $this->is_published) {
             return "Blog post '{$this->title}' was published.";
         }
+
         return match ($action) {
             'created' => "Blog post '{$this->title}' was created.",
             'updated' => "Blog post '{$this->title}' was updated.",
@@ -66,6 +74,11 @@ class Blog extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'blog_tag');
+    }
+
+    public function contentItem(): HasOne
+    {
+        return $this->hasOne(Content::class, 'slug', 'slug');
     }
 
     public function getRouteKeyName()

@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\User;
-use App\Models\Team;
 use App\Http\Controllers\ApiTokenController;
+use App\Models\Team;
+use App\Models\User;
+use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 class GenerateApiToken extends Command
@@ -39,8 +39,9 @@ class GenerateApiToken extends Command
             ? User::find($userIdentifier)
             : User::where('email', $userIdentifier)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->error("User '{$userIdentifier}' not found.");
+
             return 1;
         }
 
@@ -50,13 +51,15 @@ class GenerateApiToken extends Command
             ? Team::find($teamIdentifier)
             : Team::where('slug', $teamIdentifier)->first();
 
-        if (!$team) {
+        if (! $team) {
             $this->error("Team '{$teamIdentifier}' not found.");
+
             return 1;
         }
 
-        if (!$user->belongsToTeam($team)) {
+        if (! $user->belongsToTeam($team)) {
             $this->error("User '{$user->name}' does not belong to team '{$team->name}'.");
+
             return 1;
         }
 
@@ -66,7 +69,7 @@ class GenerateApiToken extends Command
         // 4. Resolve Scopes
         $availableScopes = array_keys(ApiTokenController::$scopes);
         $scopesInput = $this->option('scopes');
-        
+
         if ($scopesInput) {
             $scopes = array_filter(explode(',', $scopesInput));
         } else {
@@ -84,14 +87,15 @@ class GenerateApiToken extends Command
 
         // Validate scopes
         $invalidScopes = array_diff($scopes, $availableScopes);
-        if (!empty($invalidScopes)) {
-            $this->error("Invalid scopes specified: " . implode(', ', $invalidScopes));
-            $this->info("Available scopes: " . implode(', ', $availableScopes));
+        if (! empty($invalidScopes)) {
+            $this->error('Invalid scopes specified: '.implode(', ', $invalidScopes));
+            $this->info('Available scopes: '.implode(', ', $availableScopes));
+
             return 1;
         }
 
         // 5. Generate Token
-        $plainTextToken = 'framex_live_' . Str::random(40);
+        $plainTextToken = 'framex_live_'.Str::random(40);
         $hashedToken = hash('sha256', $plainTextToken);
 
         $token = $user->tokens()->create([
@@ -102,17 +106,17 @@ class GenerateApiToken extends Command
             'expires_at' => null,
         ]);
 
-        $this->info("API Token generated successfully!");
-        $this->line("--------------------------------------------------");
+        $this->info('API Token generated successfully!');
+        $this->line('--------------------------------------------------');
         $this->info("Token Name:  {$token->name}");
         $this->info("Team:        {$team->name}");
         $this->info("User:        {$user->name} ({$user->email})");
-        $this->info("Scopes:      " . implode(', ', $scopes));
-        $this->line("--------------------------------------------------");
-        $this->warn("Secret Key (shown ONLY once):");
+        $this->info('Scopes:      '.implode(', ', $scopes));
+        $this->line('--------------------------------------------------');
+        $this->warn('Secret Key (shown ONLY once):');
         $this->line($plainTextToken);
-        $this->line("--------------------------------------------------");
-        $this->warn("Save this token now. It will never be shown again.");
+        $this->line('--------------------------------------------------');
+        $this->warn('Save this token now. It will never be shown again.');
 
         return 0;
     }

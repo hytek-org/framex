@@ -1,0 +1,43 @@
+<?php
+
+namespace App\FrameX\Modules\{{namespace}}\Controllers;
+
+use App\FrameX\Modules\{{namespace}}\Services\{{class}}Service;
+use App\Http\Controllers\Controller;
+use App\Models\Team;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class {{class}}Controller extends Controller
+{
+    public function __construct(
+        protected {{class}}Service $service
+    ) {}
+
+    protected function getTeam(Request $request): Team
+    {
+        $slug = $request->route('current_team');
+        if ($slug) {
+            $team = Team::where('slug', $slug)->first();
+            if ($team) {
+                return $team;
+            }
+        }
+
+        return Auth::user()->currentTeam;
+    }
+
+    /**
+     * Display module index.
+     */
+    public function index(Request $request): Response
+    {
+        $team = $this->getTeam($request);
+
+        return Inertia::render('manage/{{slug}}/index', [
+            'team' => $team,
+        ]);
+    }
+}

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Models\Tag;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Http\JsonResponse;
 
 class TagApiController extends ApiController
 {
@@ -16,7 +16,7 @@ class TagApiController extends ApiController
     {
         $this->authorizeScope('tags:read');
 
-        $tags = Tag::withCount(['blogs' => fn($q) => $q->where('team_id', $request->user()->current_team_id)])
+        $tags = Tag::withCount(['blogs' => fn ($q) => $q->where('team_id', $request->user()->current_team_id)])
             ->orderBy('name')
             ->get();
 
@@ -49,7 +49,7 @@ class TagApiController extends ApiController
         $this->authorizeScope('tags:read');
 
         $tag = Tag::where('slug', $slug)
-            ->withCount(['blogs' => fn($q) => $q->where('team_id', $request->user()->current_team_id)])
+            ->withCount(['blogs' => fn ($q) => $q->where('team_id', $request->user()->current_team_id)])
             ->firstOrFail();
 
         return response()->json($tag);
@@ -88,7 +88,7 @@ class TagApiController extends ApiController
         $tag->delete();
 
         return response()->json([
-            'message' => 'Tag deleted successfully.'
+            'message' => 'Tag deleted successfully.',
         ]);
     }
 
@@ -99,9 +99,10 @@ class TagApiController extends ApiController
     {
         $orig = $slug;
         $i = 1;
-        while (Tag::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
-            $slug = $orig . '-' . $i++;
+        while (Tag::where('slug', $slug)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $slug = $orig.'-'.$i++;
         }
+
         return $slug;
     }
 }

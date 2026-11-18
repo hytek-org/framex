@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Team;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -31,7 +32,7 @@ return new class extends Migration
         Schema::dropIfExists('token_activity_logs');
 
         Schema::table('personal_access_tokens', function (Blueprint $table) {
-            $table->dropForeignIdFor(\App\Models\Team::class);
+            $table->dropForeignIdFor(Team::class);
             $table->dropColumn(['team_id', 'last_ip_address', 'last_user_agent']);
         });
     }

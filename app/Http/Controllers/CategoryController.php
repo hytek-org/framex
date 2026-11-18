@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Blog;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -26,9 +25,9 @@ class CategoryController extends Controller
         Gate::authorize('create', Blog::class);
 
         $validated = $request->validate([
-            'name'        => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:500',
-            'color'       => 'required|string|max:20',
+            'color' => 'required|string|max:20',
         ]);
 
         $slug = $this->uniqueSlug(Str::slug($validated['name']));
@@ -44,9 +43,9 @@ class CategoryController extends Controller
         Gate::authorize('create', Blog::class);
 
         $validated = $request->validate([
-            'name'        => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:500',
-            'color'       => 'required|string|max:20',
+            'color' => 'required|string|max:20',
         ]);
 
         // Regenerate slug only when name changes
@@ -71,13 +70,13 @@ class CategoryController extends Controller
     private function uniqueSlug(string $slug, ?int $ignoreId = null): string
     {
         $orig = $slug;
-        $i    = 1;
+        $i = 1;
         while (
             Category::where('slug', $slug)
                 ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
                 ->exists()
         ) {
-            $slug = $orig . '-' . $i++;
+            $slug = $orig.'-'.$i++;
         }
 
         return $slug;

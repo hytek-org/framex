@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TeamInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +20,7 @@ class NotificationCenterController extends Controller
             ->limit(30)
             ->get();
 
-        $dbNotifications = $dbNotificationsCollection->toBase()->map(fn($notification) => [
+        $dbNotifications = $dbNotificationsCollection->toBase()->map(fn ($notification) => [
             'id' => $notification->id,
             'title' => $notification->data['title'] ?? 'Notification',
             'body' => $notification->data['body'] ?? '',
@@ -30,20 +31,20 @@ class NotificationCenterController extends Controller
 
         // 2. Fetch pending invitations for the user's email to show dynamically (if not already represented as a db notification)
         $dbNotificationInvitationIds = $dbNotificationsCollection
-            ->filter(fn($n) => $n->type === \App\Notifications\Teams\TeamInvitation::class || isset($n->data['invitation_id']))
-            ->map(fn($n) => $n->data['invitation_id'] ?? null)
+            ->filter(fn ($n) => $n->type === \App\Notifications\Teams\TeamInvitation::class || isset($n->data['invitation_id']))
+            ->map(fn ($n) => $n->data['invitation_id'] ?? null)
             ->filter()
             ->toArray();
 
-        $invitations = \App\Models\TeamInvitation::where('email', $user->email)
+        $invitations = TeamInvitation::where('email', $user->email)
             ->whereNull('accepted_at')
             ->where('expires_at', '>', now())
             ->whereNotIn('id', $dbNotificationInvitationIds)
             ->with(['team', 'inviter'])
             ->get()
             ->toBase()
-            ->map(fn($invitation) => [
-                'id' => 'invitation-' . $invitation->id,
+            ->map(fn ($invitation) => [
+                'id' => 'invitation-'.$invitation->id,
                 'title' => __('Workspace Invitation'),
                 'body' => __(':inviterName has invited you to join the :teamName team.', [
                     'inviterName' => $invitation->inviter->name,

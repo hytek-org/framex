@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tag;
 use App\Models\Blog;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
+use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -66,13 +65,13 @@ class TagController extends Controller
     private function uniqueSlug(string $slug, ?int $ignoreId = null): string
     {
         $orig = $slug;
-        $i    = 1;
+        $i = 1;
         while (
             Tag::where('slug', $slug)
                 ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
                 ->exists()
         ) {
-            $slug = $orig . '-' . $i++;
+            $slug = $orig.'-'.$i++;
         }
 
         return $slug;

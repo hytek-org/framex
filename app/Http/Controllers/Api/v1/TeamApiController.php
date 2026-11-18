@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Models\Team;
-use App\Models\TeamInvitation;
-use App\Models\ActivityLog;
 use App\Enums\TeamRole;
-use Illuminate\Http\Request;
+use App\Models\ActivityLog;
+use App\Models\Team;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -107,7 +106,7 @@ class TeamApiController extends ApiController
         $existingMember = $team->members()->where('email', $validated['email'])->exists();
         if ($existingMember) {
             return response()->json([
-                'message' => 'User is already a member of this team.'
+                'message' => 'User is already a member of this team.',
             ], 422);
         }
 
@@ -118,7 +117,7 @@ class TeamApiController extends ApiController
             ->exists();
         if ($existingInvitation) {
             return response()->json([
-                'message' => 'A pending invitation for this email already exists.'
+                'message' => 'A pending invitation for this email already exists.',
             ], 422);
         }
 
@@ -136,7 +135,7 @@ class TeamApiController extends ApiController
                 'email' => $invitation->email,
                 'role' => $invitation->role->value,
                 'expires_at' => $invitation->expires_at,
-            ]
+            ],
         ], 201);
     }
 

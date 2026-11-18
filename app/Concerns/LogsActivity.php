@@ -49,7 +49,7 @@ trait LogsActivity
                 $teamId = Auth::user()->current_team_id;
             }
 
-            if (!$teamId) {
+            if (! $teamId) {
                 return; // Can't associate activity log without a team context
             }
 
@@ -59,7 +59,7 @@ trait LogsActivity
                 $changes = $model->getChanges();
                 // Exclude timestamps and internally managed fields
                 unset($changes['updated_at'], $changes['created_at']);
-                
+
                 if (empty($changes)) {
                     return; // No meaningful changes to log
                 }
@@ -103,7 +103,7 @@ trait LogsActivity
                 throw $e;
             }
             // Fail-safe to prevent user request from crashing due to logging errors
-            Log::warning('Activity logging failed: ' . $e->getMessage(), [
+            Log::warning('Activity logging failed: '.$e->getMessage(), [
                 'model' => get_class($model),
                 'action' => $action,
                 'exception' => $e,
@@ -117,6 +117,7 @@ trait LogsActivity
     protected static function defaultActivityEvent($model, string $action): string
     {
         $name = strtolower(class_basename($model));
+
         return "{$name}.{$action}";
     }
 
@@ -127,6 +128,7 @@ trait LogsActivity
     {
         $modelName = class_basename($model);
         $displayName = $model->name ?? $model->title ?? $model->id;
+
         return "{$modelName} '{$displayName}' was {$action}.";
     }
 }

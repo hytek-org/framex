@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,20 +16,21 @@ class BillingController extends Controller
      */
     public function index(Request $request): Response|RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         // Sync fallback: if checkout=success or sync parameter is present
         if ($request->input('checkout') === 'success' || $request->has('sync')) {
             $this->syncStripeData($user);
+
             return redirect()->route('billing.index');
         }
 
         $subscription = $user->subscription('default');
-        
+
         // Handle expired pending downgrades
         if ($subscription && $subscription->pending_plan_until) {
-            if (\Illuminate\Support\Carbon::parse($subscription->pending_plan_until)->isPast()) {
+            if (Carbon::parse($subscription->pending_plan_until)->isPast()) {
                 $subscription->update([
                     'pending_plan_from' => null,
                     'pending_plan_to' => null,
@@ -52,7 +55,7 @@ class BillingController extends Controller
                     ];
                 })->toArray();
             } catch (\Exception $e) {
-                logger()->error('Failed to retrieve invoices: ' . $e->getMessage());
+                logger()->error('Failed to retrieve invoices: '.$e->getMessage());
             }
         }
 
@@ -70,7 +73,7 @@ class BillingController extends Controller
             if ($subscription->pending_plan_to && $subscription->pending_plan_until) {
                 $pendingDowngrade = [
                     'to' => $subscription->pending_plan_to,
-                    'effective_at' => \Illuminate\Support\Carbon::parse($subscription->pending_plan_until)->timestamp,
+                    'effective_at' => Carbon::parse($subscription->pending_plan_until)->timestamp,
                 ];
             } elseif ($subscription->onGracePeriod()) {
                 $pendingDowngrade = [
@@ -113,18 +116,18 @@ class BillingController extends Controller
 
         if (! $price) {
             return back()->withErrors([
-                'plan' => "The {$plan} plan is not correctly configured in the system."
+                'plan' => "The {$plan} plan is not correctly configured in the system.",
             ]);
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $checkout = $user->newSubscription('default', $price)
             ->checkout([
                 'success_url' => route('billing.index').'?checkout=success',
                 'cancel_url' => route('billing.index').'?checkout=cancelled',
-            ]); 
+            ]);
 
         return Inertia::location($checkout->url);
     }
@@ -134,11 +137,11 @@ class BillingController extends Controller
      */
     public function portal(Request $request): \Symfony\Component\HttpFoundation\Response
     {
-        if (!filled(config('cashier.key'))) {
+        if (! filled(config('cashier.key'))) {
             return back()->withErrors(['stripe' => 'Stripe is not configured.']);
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         return Inertia::location($user->billingPortalUrl(route('billing.index', ['sync' => 1])));
@@ -149,7 +152,7 @@ class BillingController extends Controller
      */
     public function cancel(Request $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         if ($user->subscribed('default')) {
@@ -171,7 +174,7 @@ class BillingController extends Controller
      */
     public function resume(Request $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         $subscription = $user->subscription('default');
 
@@ -192,7 +195,7 @@ class BillingController extends Controller
      */
     public function swap(Request $request, string $plan): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         $normalizedPlan = strtolower(trim($plan));
 
@@ -207,19 +210,20 @@ class BillingController extends Controller
                 ]);
                 $subscription->cancel();
             }
+
             return back();
         }
 
         $stripeConfig = config('services.stripe') ?? [];
         $priceId = $stripeConfig["price_{$normalizedPlan}"] ?? null;
 
-        if (!$priceId) {
+        if (! $priceId) {
             return back()->withErrors(['plan' => "The {$plan} plan is not correctly configured in the system."]);
         }
 
         if ($user->subscribed('default')) {
             $subscription = $user->subscription('default');
-            
+
             $planTiers = ['free' => 0, 'pro' => 1, 'scale' => 2];
             $currentPlanKey = strtolower($user->currentPlanName());
             $targetPlanKey = $normalizedPlan;
@@ -239,12 +243,14 @@ class BillingController extends Controller
                     $subscription->update([
                         'pending_plan_from' => ucfirst($currentPlanKey),
                         'pending_plan_to' => ucfirst($targetPlanKey),
-                        'pending_plan_until' => \Illuminate\Support\Carbon::createFromTimestamp($renewsAt),
+                        'pending_plan_until' => Carbon::createFromTimestamp($renewsAt),
                     ]);
                 } catch (\Exception $e) {
-                    logger()->error('Stripe downgrade swap failed: ' . $e->getMessage());
+                    logger()->error('Stripe downgrade swap failed: '.$e->getMessage());
+
                     return back()->withErrors(['plan' => 'Failed to process downgrade in Stripe.']);
                 }
+
                 return back();
             } else {
                 // Upgrade or resumption: swap immediately on Stripe and clear any pending downgrade fields
@@ -253,8 +259,9 @@ class BillingController extends Controller
                     'pending_plan_to' => null,
                     'pending_plan_until' => null,
                 ]);
-                
+
                 $subscription->swap($priceId);
+
                 return back();
             }
         }
@@ -267,7 +274,7 @@ class BillingController extends Controller
      */
     public function downloadInvoice(Request $request, string $invoiceId)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         return $user->downloadInvoice($invoiceId, [
@@ -283,32 +290,32 @@ class BillingController extends Controller
     {
         try {
             $user->createOrGetStripeCustomer();
-            
+
             if ($user->stripe_id) {
                 $user->updateDefaultPaymentMethodFromStripe();
-                
+
                 $stripeCustomer = $user->asStripeCustomer(['subscriptions']);
                 $stripeSubscriptions = $stripeCustomer->subscriptions->data ?? [];
-                
+
                 foreach ($stripeSubscriptions as $stripeSubscription) {
                     $firstItem = $stripeSubscription->items->data[0];
                     $isSinglePrice = count($stripeSubscription->items->data) === 1;
-                    
-                    $trialEndsAt = $stripeSubscription->trial_end 
-                        ? \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->trial_end) 
+
+                    $trialEndsAt = $stripeSubscription->trial_end
+                        ? Carbon::createFromTimestamp($stripeSubscription->trial_end)
                         : null;
-                        
+
                     $endsAt = null;
                     if ($stripeSubscription->cancel_at_period_end) {
-                        $endsAt = $stripeSubscription->trial_end && \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->trial_end)->isFuture()
+                        $endsAt = $stripeSubscription->trial_end && Carbon::createFromTimestamp($stripeSubscription->trial_end)->isFuture()
                             ? $trialEndsAt
-                            : \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->current_period_end);
+                            : Carbon::createFromTimestamp($stripeSubscription->current_period_end);
                     } elseif ($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at) {
-                        $endsAt = \Illuminate\Support\Carbon::createFromTimestamp($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at);
+                        $endsAt = Carbon::createFromTimestamp($stripeSubscription->cancel_at ?? $stripeSubscription->canceled_at);
                     }
-                    
+
                     $stripePrice = $isSinglePrice ? $firstItem->price->id : null;
-                    
+
                     $subscription = $user->subscriptions()->updateOrCreate([
                         'stripe_id' => $stripeSubscription->id,
                     ], [
@@ -323,10 +330,10 @@ class BillingController extends Controller
                     $pendingPriceId = null;
                     if ($subscription->pending_plan_to) {
                         $stripeConfig = config('services.stripe') ?? [];
-                        $pendingPriceId = $stripeConfig["price_" . strtolower($subscription->pending_plan_to)] ?? null;
+                        $pendingPriceId = $stripeConfig['price_'.strtolower($subscription->pending_plan_to)] ?? null;
                     }
 
-                    if ($stripePrice !== $pendingPriceId || ($subscription->pending_plan_until && \Illuminate\Support\Carbon::parse($subscription->pending_plan_until)->isPast())) {
+                    if ($stripePrice !== $pendingPriceId || ($subscription->pending_plan_until && Carbon::parse($subscription->pending_plan_until)->isPast())) {
                         $subscription->update([
                             'pending_plan_from' => null,
                             'pending_plan_to' => null,
@@ -349,36 +356,37 @@ class BillingController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            logger()->error('Stripe sync failed in BillingController: ' . $e->getMessage());
+            logger()->error('Stripe sync failed in BillingController: '.$e->getMessage());
         }
     }
 
     /**
      * Get platform tier structural metadata array.
+     *
      * * @return array<int, array<string, mixed>>
      */
     private function plans(): array
     {
         return [
             [
-                'id' => 'free', 
-                'name' => 'Free', 
-                'price' => '$0', 
-                'description' => 'For solo builders validating an idea.', 
-                'features' => ['1 team', '1,000 API calls', 'Community support']
+                'id' => 'free',
+                'name' => 'Free',
+                'price' => '$0',
+                'description' => 'For solo builders validating an idea.',
+                'features' => ['1 team', '1,000 API calls', 'Community support'],
             ],
             [
-                'id' => 'pro', 
-                'name' => 'Pro', 
-                'price' => '$29', 
-                'description' => 'For teams shipping a real SaaS product.', 
+                'id' => 'pro',
+                'name' => 'Pro',
+                'price' => '$29',
+                'description' => 'For teams shipping a real SaaS product.',
                 'features' => ['Unlimited teams', 'Realtime notifications', 'Priority support'],
             ],
             [
-                'id' => 'scale', 
-                'name' => 'Scale', 
-                'price' => '$99', 
-                'description' => 'For serious teams with operational needs.', 
+                'id' => 'scale',
+                'name' => 'Scale',
+                'price' => '$99',
+                'description' => 'For serious teams with operational needs.',
                 'features' => ['Advanced admin', 'Audit activity', 'Custom limits'],
             ],
         ];

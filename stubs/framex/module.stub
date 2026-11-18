@@ -1,0 +1,70 @@
+<?php
+
+namespace App\FrameX\Modules\{{namespace}};
+
+use App\FrameX\Core\Contracts\ModuleInterface;
+use App\FrameX\Modules\{{namespace}}\Services\{{class}}Service;
+
+class {{class}}Module implements ModuleInterface
+{
+    public function id(): string
+    {
+        return '{{slug}}';
+    }
+
+    public function name(): string
+    {
+        return '{{name}}';
+    }
+
+    public function version(): string
+    {
+        return '1.0.0';
+    }
+
+    public function description(): string
+    {
+        return '{{description}}';
+    }
+
+    public function dependencies(): array
+    {
+        return [];
+    }
+
+    public function navigation(): array
+    {
+        return [
+            [
+                'label' => '{{name}}',
+                'route' => '{{slug}}.index',
+                'icon' => 'Box',
+                'section' => 'modules',
+                'order' => 50,
+            ],
+        ];
+    }
+
+    public function permissions(): array
+    {
+        return [
+            '{{slug}}.view',
+            '{{slug}}.manage',
+        ];
+    }
+
+    public function settingsSchema(): array
+    {
+        return [];
+    }
+
+    public function register(): void
+    {
+        app()->singleton({{class}}Service::class);
+    }
+
+    public function boot(): void
+    {
+        // Boot module event listeners, routes, or observers
+    }
+}

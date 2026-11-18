@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TeamActivityRecorded;
+use App\Models\ActivityLog;
 use App\Models\Team;
 use App\Models\TokenActivityLog;
-use App\Models\ActivityLog;
-use App\Models\PersonalAccessToken;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Auth;
 
 class ApiTokenController extends Controller
 {
@@ -76,7 +75,7 @@ class ApiTokenController extends Controller
 
         // 3. Usage monitoring dashboard stats (Phase 6)
         $tokenIds = $user->tokens()->pluck('id');
-        
+
         $totalRequestsToday = TokenActivityLog::whereIn('token_id', $tokenIds)
             ->where('created_at', '>=', now()->startOfDay())
             ->count();
@@ -112,7 +111,7 @@ class ApiTokenController extends Controller
                 'totalRequestsToday' => $totalRequestsToday,
                 'topEndpoints' => $topEndpoints,
                 'recentLogs' => $recentLogs,
-            ]
+            ],
         ]);
     }
 
@@ -125,18 +124,18 @@ class ApiTokenController extends Controller
             'name' => ['required', 'string', 'max:80'],
             'team_id' => ['required', 'exists:teams,id'],
             'abilities' => ['required', 'array'],
-            'abilities.*' => ['string', 'in:' . implode(',', array_keys(self::$scopes))],
+            'abilities.*' => ['string', 'in:'.implode(',', array_keys(self::$scopes))],
             'expires_at' => ['nullable', 'integer', 'in:7,30,90,365'],
         ]);
 
         // Check if user belongs to the selected team
         $team = Team::findOrFail($validated['team_id']);
-        if (!$request->user()->belongsToTeam($team)) {
+        if (! $request->user()->belongsToTeam($team)) {
             abort(403, 'Unauthorized team.');
         }
 
         // Generate live token secret
-        $plainTextToken = 'framex_live_' . Str::random(40);
+        $plainTextToken = 'framex_live_'.Str::random(40);
         $hashedToken = hash('sha256', $plainTextToken);
 
         $expiresAt = $validated['expires_at']
@@ -162,7 +161,7 @@ class ApiTokenController extends Controller
         $token = $request->user()->tokens()->whereKey($tokenId)->firstOrFail();
 
         // Generate new key
-        $plainTextToken = 'framex_live_' . Str::random(40);
+        $plainTextToken = 'framex_live_'.Str::random(40);
         $hashedToken = hash('sha256', $plainTextToken);
 
         $token->update([
@@ -181,7 +180,7 @@ class ApiTokenController extends Controller
                         'token_id' => $token->id,
                     ],
                 ]);
-                \App\Events\TeamActivityRecorded::dispatch($activity);
+                TeamActivityRecorded::dispatch($activity);
             } catch (\Throwable $e) {
                 // Ignore
             }
