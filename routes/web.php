@@ -46,6 +46,7 @@ Route::get('docs', [DocumentationController::class, 'index'])->name('docs.index'
 Route::get('docs/{slug}', [DocumentationController::class, 'show'])->name('docs.show')->where('slug', '.*');
 
 Route::get('sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+Route::get('forms/{slug}', [FormSubmissionController::class, 'show'])->name('forms.public.show');
 Route::post('forms/{slug}/submit', [FormSubmissionController::class, 'submit'])->name('forms.submit');
 
 Route::prefix('{current_team}')
@@ -121,8 +122,13 @@ Route::prefix('{current_team}')
             Route::post('/', [FormManagementController::class, 'store'])->name('store');
             Route::get('/{form}/edit', [FormManagementController::class, 'edit'])->name('edit');
             Route::put('/{form}', [FormManagementController::class, 'update'])->name('update');
+            Route::patch('/{form}/toggle', [FormManagementController::class, 'toggleStatus'])->name('toggle');
+            Route::post('/{form}/duplicate', [FormManagementController::class, 'duplicate'])->name('duplicate');
             Route::delete('/{form}', [FormManagementController::class, 'destroy'])->name('destroy');
             Route::get('/{form}/submissions', [FormManagementController::class, 'submissions'])->name('submissions');
+            Route::patch('/{form}/submissions/{submission}', [FormManagementController::class, 'updateSubmissionStatus'])->name('submissions.update');
+            Route::delete('/{form}/submissions/{submission}', [FormManagementController::class, 'destroySubmission'])->name('submissions.destroy');
+            Route::post('/{form}/submissions/bulk', [FormManagementController::class, 'bulkSubmissions'])->name('submissions.bulk');
             Route::post('/{form}/submissions/export', [FormManagementController::class, 'export'])->name('submissions.export');
         });
 

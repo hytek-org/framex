@@ -9,6 +9,7 @@ import { configureEcho } from "@laravel/echo-react";
 import { useFlashToast } from "./hooks/use-flash-toast";
 import MarketingLayout from "./layouts/marketing-layout";
 import DocsLayout from "./layouts/docs-layout";
+import PublicFormLayout from "./layouts/public-form-layout";
 
 configureEcho({
     broadcaster: "reverb",
@@ -38,6 +39,8 @@ void createInertiaApp({
                 return AuthLayout;
             case name.startsWith("docs/"):
                 return DocsLayout;
+            case name.startsWith("forms/"):
+                return PublicFormLayout;
             case name.startsWith("settings/"):
             case name.startsWith("teams/"):
                 return [AppLayout, SettingsLayout];

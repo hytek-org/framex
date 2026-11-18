@@ -8,12 +8,49 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class FormSubmissionController extends Controller
 {
     public function __construct(
         protected FormService $formService
     ) {}
+
+    /**
+     * Render the public hosted (or embeddable) form page.
+     */
+    public function show(Request $request, string $slug): Response
+    {
+        $form = Form::with('team:id,name,slug')
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $user = $request->user();
+        $isTeamMember = $user !== null
+            && $form->team !== null
+            && $user->belongsToTeam($form->team);
+
+        $isPreview = $request->boolean('preview') && $isTeamMember;
+        $isEmbed = $request->boolean('embed');
+
+        return Inertia::render('forms/show', [
+            'form' => [
+                'id' => $form->id,
+                'name' => $form->name,
+                'slug' => $form->slug,
+                'description' => $form->description,
+                'fields' => $form->fields ?? [],
+                'submit_button_text' => $form->submit_button_text ?: 'Submit',
+                'success_message' => $form->success_message ?: 'Thank you! Your submission has been received.',
+                'redirect_url' => $form->redirect_url,
+                'is_active' => $form->is_active,
+                'team_name' => $form->team?->name,
+            ],
+            'isEmbed' => $isEmbed,
+            'isPreview' => $isPreview,
+        ]);
+    }
 
     /**
      * Handle public form submission.
@@ -40,6 +77,7 @@ class FormSubmissionController extends Controller
                 'success' => true,
                 'message' => $message,
                 'submission_id' => $submission->id,
+                'redirect_url' => $form->redirect_url,
             ]);
         }
 
