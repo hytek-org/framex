@@ -163,7 +163,7 @@ return [
     'features' => array_values(array_filter([
         env('FORTIFY_REGISTRATION', true) ? Features::registration() : null,
         env('FORTIFY_RESET_PASSWORDS', true) ? Features::resetPasswords() : null,
-        env('FORTIFY_EMAIL_VERIFICATION', false) ? Features::emailVerification() : null,
+        env('FORTIFY_EMAIL_VERIFICATION', true) ? Features::emailVerification() : null,
         env('FORTIFY_TWO_FACTOR', true) ? Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,

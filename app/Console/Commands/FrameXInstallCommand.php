@@ -20,7 +20,6 @@ use function Laravel\Prompts\outro;
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
-use function Laravel\Prompts\table;
 use function Laravel\Prompts\text;
 
 class FrameXInstallCommand extends Command
@@ -62,6 +61,13 @@ class FrameXInstallCommand extends Command
     protected DatabaseManager $dbManager;
 
     protected InstallationState $installationState;
+
+    /**
+     * Track status of individual execution steps (Step, Status, Details).
+     *
+     * @var array<int, array{step: string, status: string, details: string}>
+     */
+    protected array $installationLog = [];
 
     public function __construct(
         ?EnvironmentManager $envManager = null,
@@ -355,7 +361,7 @@ LOGO;
      */
     protected function promptAuthenticationConfiguration(bool $isInteractive): array
     {
-        $defaultSelections = ['registration', 'two_factor', 'passkeys'];
+        $defaultSelections = ['registration', 'email_verification', 'two_factor', 'passkeys'];
 
         if (! $isInteractive) {
             $cliAuth = $this->option('auth-features');
@@ -502,6 +508,18 @@ LOGO;
     }
 
     /**
+     * Record step result in the installation summary log.
+     */
+    protected function recordStep(string $step, string $status, string $details): void
+    {
+        $this->installationLog[] = [
+            'step' => $step,
+            'status' => $status,
+            'details' => $details,
+        ];
+    }
+
+    /**
      * Step 7: Installation Execution Pipeline
      */
     protected function executeInstallation(
@@ -515,28 +533,45 @@ LOGO;
     ): bool {
         $this->line('');
         $this->line('<fg=cyan>Running installation steps...</>');
+        $this->installationLog = [];
 
         // 7.1 Write .env configuration
         $this->line('  → Updating environment configuration (.env)...');
-        $envUpdates = array_merge([
-            'APP_NAME' => $appConfig['name'],
-            'APP_ENV' => $appConfig['env'],
-            'APP_DEBUG' => $appConfig['debug'],
-            'APP_URL' => $appConfig['url'],
-            'VITE_APP_NAME' => '${APP_NAME}',
-            'FORTIFY_REGISTRATION' => $authConfig['registration'],
-            'FORTIFY_RESET_PASSWORDS' => $authConfig['registration'],
-            'FORTIFY_EMAIL_VERIFICATION' => $authConfig['email_verification'],
-            'FORTIFY_TWO_FACTOR' => $authConfig['two_factor'],
-            'FORTIFY_PASSKEYS' => $authConfig['passkeys'],
-        ], $dbConfig);
+        try {
+            $envUpdates = array_merge([
+                'APP_NAME' => $appConfig['name'],
+                'APP_ENV' => $appConfig['env'],
+                'APP_DEBUG' => $appConfig['debug'],
+                'APP_URL' => $appConfig['url'],
+                'VITE_APP_NAME' => '${APP_NAME}',
+                'FORTIFY_REGISTRATION' => $authConfig['registration'],
+                'FORTIFY_RESET_PASSWORDS' => $authConfig['registration'],
+                'FORTIFY_EMAIL_VERIFICATION' => $authConfig['email_verification'],
+                'FORTIFY_TWO_FACTOR' => $authConfig['two_factor'],
+                'FORTIFY_PASSKEYS' => $authConfig['passkeys'],
+            ], $dbConfig);
 
-        $this->envManager->setMany($envUpdates)->save();
+            $this->envManager->setMany($envUpdates)->save();
+            $this->recordStep('Environment Configuration', 'SUCCESS', '.env configuration updated');
+        } catch (Throwable $e) {
+            $this->recordStep('Environment Configuration', 'FAILED', $e->getMessage());
+
+            return false;
+        }
 
         // 7.2 Generate Application Key if not present
         if (! $this->envManager->get('APP_KEY') || trim($this->envManager->get('APP_KEY')) === '') {
             $this->line('  → Generating application key...');
-            Artisan::call('key:generate', ['--force' => true]);
+            try {
+                Artisan::call('key:generate', ['--force' => true]);
+                $this->recordStep('Application Key', 'SUCCESS', 'New application encryption key generated');
+            } catch (Throwable $e) {
+                $this->recordStep('Application Key', 'FAILED', $e->getMessage());
+
+                return false;
+            }
+        } else {
+            $this->recordStep('Application Key', 'SUCCESS', 'Existing application key preserved');
         }
 
         // 7.3 Database creation & connectivity verification
@@ -545,34 +580,51 @@ LOGO;
             $test = $this->dbManager->testConnection($dbConfig);
             if (! $test['success']) {
                 $this->error("  ✖ {$test['message']}");
+                $this->recordStep('Database Connectivity', 'FAILED', $test['message']);
 
                 return false;
             }
             $this->line("  ✔ {$test['message']}");
+            $this->recordStep('Database Connectivity', 'SUCCESS', "Connected via {$dbConfig['DB_CONNECTION']}");
+        } else {
+            $this->recordStep('Database Connectivity', 'SKIPPED', 'Skipped via --skip-db-check flag');
         }
 
         // 7.4 Database Migrations
         if (! $this->option('skip-migrations')) {
             $this->line('  → Running database migrations...');
-            // Reload configuration dynamically
             config(['database.default' => $dbConfig['DB_CONNECTION']]);
             $migrateExit = Artisan::call('migrate', ['--force' => true, '--graceful' => true]);
             if ($migrateExit !== 0) {
                 $this->warn('  ⚠ Migrations exited with a warning or partial status: '.Artisan::output());
+                $this->recordStep('Database Migrations', 'WARNING', 'Completed with warnings');
             } else {
                 $this->line('  ✔ Database migrated successfully.');
+                $this->recordStep('Database Migrations', 'SUCCESS', 'All schema migrations executed');
             }
+        } else {
+            $this->recordStep('Database Migrations', 'SKIPPED', 'Skipped via --skip-migrations flag');
         }
 
         // 7.5 Create storage symlink
         $this->line('  → Linking public storage directory...');
         try {
             Artisan::call('storage:link');
-        } catch (Throwable) {
-            // Storage link already exists or platform specific
+            $this->recordStep('Storage Symlink', 'SUCCESS', 'public/storage symlink verified');
+        } catch (Throwable $e) {
+            $this->recordStep('Storage Symlink', 'WARNING', $e->getMessage());
         }
 
-        // 7.6 Apply module configuration
+        // 7.6 Synchronize Wayfinder routes and actions
+        $this->line('  → Generating Wayfinder TypeScript route and action definitions...');
+        try {
+            Artisan::call('wayfinder:generate', ['--no-interaction' => true]);
+            $this->recordStep('Wayfinder TypeScript Types', 'SUCCESS', 'Generated typed route and action bindings');
+        } catch (Throwable $e) {
+            $this->recordStep('Wayfinder TypeScript Types', 'WARNING', "Could not generate types: {$e->getMessage()}");
+        }
+
+        // 7.7 Apply module configuration
         $this->line('  → Configuring FrameX modules...');
         foreach ($modulesConfig['disabled'] as $disabledId) {
             try {
@@ -588,23 +640,39 @@ LOGO;
                 // Core or already enabled
             }
         }
+        $this->recordStep('FrameX Modules', 'SUCCESS', count($modulesConfig['enabled']).' module(s) enabled');
 
-        // 7.7 Optional Demo Content Seeding
+        // 7.8 Optional Demo Content Seeding
         if ($this->option('seed')) {
             $this->line('  → Provisioning demo content and workspace...');
-            Artisan::call('framex:demo:seed');
+            try {
+                Artisan::call('framex:demo:seed');
+                $this->recordStep('Demo Seeding', 'SUCCESS', 'Sample workspace and content provisioned');
+            } catch (Throwable $e) {
+                $this->recordStep('Demo Seeding', 'WARNING', $e->getMessage());
+            }
+        } else {
+            $this->recordStep('Demo Seeding', 'SKIPPED', 'Omitted (run php artisan framex:demo:seed manually)');
         }
 
-        // 7.8 Frontend Dependency Installation
+        // 7.9 Frontend Dependency Installation
         if ($frontendManager !== 'skip' && ! $this->option('skip-frontend')) {
-            $this->installFrontendDependencies($frontendManager);
+            $installed = $this->installFrontendDependencies($frontendManager);
+            $this->recordStep('Frontend Dependencies', $installed ? 'SUCCESS' : 'WARNING', "Processed via {$frontendManager}");
+        } else {
+            $this->recordStep('Frontend Dependencies', 'SKIPPED', 'Skipped dependency installation');
         }
 
-        // 7.9 Clear and optimize caches
+        // 7.10 Clear and optimize caches
         $this->line('  → Clearing bootstrap caches...');
-        Artisan::call('optimize:clear');
+        try {
+            Artisan::call('optimize:clear');
+            $this->recordStep('Cache Optimization', 'SUCCESS', 'Caches cleared and reset');
+        } catch (Throwable $e) {
+            $this->recordStep('Cache Optimization', 'WARNING', $e->getMessage());
+        }
 
-        // 7.10 Mark installation state
+        // 7.11 Mark installation state
         $this->installationState->markInstalled([
             'app_name' => $appConfig['name'],
             'app_url' => $appConfig['url'],
@@ -612,6 +680,7 @@ LOGO;
             'enabled_modules' => $modulesConfig['enabled'],
             'frontend_manager' => $frontendManager,
         ]);
+        $this->recordStep('Installation State', 'SUCCESS', 'Marked installed in storage metadata');
 
         return true;
     }
@@ -619,7 +688,7 @@ LOGO;
     /**
      * Install frontend npm/pnpm/yarn dependencies via Process.
      */
-    protected function installFrontendDependencies(string $manager): void
+    protected function installFrontendDependencies(string $manager): bool
     {
         $this->line("  → Installing frontend dependencies via {$manager}...");
 
@@ -635,11 +704,17 @@ LOGO;
 
             if ($process->isSuccessful()) {
                 $this->line("  ✔ Frontend packages installed via {$manager}.");
-            } else {
-                $this->warn("  ⚠ {$manager} install finished with warnings. You can run '{$command}' manually.");
+
+                return true;
             }
+
+            $this->warn("  ⚠ {$manager} install finished with warnings. You can run '{$command}' manually.");
+
+            return false;
         } catch (Throwable $e) {
             $this->warn("  ⚠ Could not execute [{$command}]: {$e->getMessage()}. Please run it manually.");
+
+            return false;
         }
     }
 
@@ -656,6 +731,23 @@ LOGO;
         $this->line('');
         outro('FrameX installed successfully!');
 
+        // Render Step Execution Summary
+        $this->line('  <fg=cyan;options=bold>Installation Summary:</>');
+        $this->table(
+            ['Operation', 'Status', 'Details'],
+            array_map(fn ($s) => [
+                $s['step'],
+                match ($s['status']) {
+                    'SUCCESS' => '✔ SUCCESS',
+                    'SKIPPED' => '⏭ SKIPPED',
+                    'WARNING' => '⚠ WARNING',
+                    'FAILED' => '✖ FAILED',
+                    default => $s['status'],
+                },
+                $s['details'],
+            ], $this->installationLog)
+        );
+
         $activeAuth = [];
         if ($authConfig['registration']) {
             $activeAuth[] = 'Standard Auth';
@@ -670,9 +762,11 @@ LOGO;
             $activeAuth[] = 'Email Verification';
         }
 
-        table(
-            headers: ['Component', 'Configured Value'],
-            rows: [
+        $this->line('');
+        $this->line('  <fg=cyan;options=bold>Configured Environment & Tooling:</>');
+        $this->table(
+            ['Component', 'Configured Value'],
+            [
                 ['Application Name', $appConfig['name']],
                 ['Application URL', $appConfig['url']],
                 ['Environment', "{$appConfig['env']} (Debug: ".($appConfig['debug'] ? 'On' : 'Off').')'],

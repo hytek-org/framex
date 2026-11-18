@@ -13,6 +13,7 @@ use App\Models\TeamInvitation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -46,6 +47,21 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureFallbackRoutes();
+    }
+
+    /**
+     * Ensure required starter kit named routes exist even when optional auth features are toggled off.
+     */
+    private function configureFallbackRoutes(): void
+    {
+        if (! Features::enabled(Features::emailVerification())) {
+            Route::group(['middleware' => ['web', 'auth']], function () {
+                Route::get('/email/verify', fn () => redirect()->route('home'))->name('verification.notice');
+                Route::get('/email/verify/{id}/{hash}', fn () => redirect()->route('home'))->name('verification.verify');
+                Route::post('/email/verification-notification', fn () => back()->with('status', 'verification-link-sent'))->name('verification.send');
+            });
+        }
     }
 
     /**
