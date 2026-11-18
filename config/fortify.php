@@ -160,18 +160,18 @@ return [
     |
     */
 
-    'features' => [
-        Features::registration(),
-        Features::resetPasswords(),
-        Features::emailVerification(),
-        Features::twoFactorAuthentication([
+    'features' => array_values(array_filter([
+        env('FORTIFY_REGISTRATION', true) ? Features::registration() : null,
+        env('FORTIFY_RESET_PASSWORDS', true) ? Features::resetPasswords() : null,
+        env('FORTIFY_EMAIL_VERIFICATION', false) ? Features::emailVerification() : null,
+        env('FORTIFY_TWO_FACTOR', true) ? Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
             // 'window' => 0
-        ]),
-        Features::passkeys([
+        ]) : null,
+        env('FORTIFY_PASSKEYS', true) ? Features::passkeys([
             'confirmPassword' => true,
-        ]),
-    ],
+        ]) : null,
+    ])),
 
 ];

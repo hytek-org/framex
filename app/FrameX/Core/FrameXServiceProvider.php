@@ -2,6 +2,7 @@
 
 namespace App\FrameX\Core;
 
+use App\Console\Commands\FrameXInstallCommand;
 use App\FrameX\Blueprints\BlueprintRegistry;
 use App\FrameX\Blueprints\Solutions\CorporateBlueprint;
 use App\FrameX\Blueprints\Solutions\DocsBlueprint;
@@ -50,6 +51,21 @@ class FrameXServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 1. Service providers must not execute database-dependent operations unconditionally during package discovery
+        if ($this->isPackageDiscovery()) {
+            return;
+        }
+
+        // 2. Ensure SQLite database file exists before any database-dependent operations
+        $this->ensureSqliteDatabaseExists();
+
+        // 3. Register installer and core artisan commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                FrameXInstallCommand::class,
+            ]);
+        }
+
         $moduleRegistry = $this->app->make(ModuleRegistry::class);
         $navigationRegistry = $this->app->make(NavigationRegistry::class);
 
@@ -60,5 +76,38 @@ class FrameXServiceProvider extends ServiceProvider
 
         // Boot the module registry (validates dependencies and boots all modules)
         $moduleRegistry->boot();
+    }
+
+    /**
+     * Determine if composer package discovery is currently executing.
+     */
+    protected function isPackageDiscovery(): bool
+    {
+        return $this->app->runningInConsole()
+            && isset($_SERVER['argv'])
+            && in_array('package:discover', $_SERVER['argv'], true);
+    }
+
+    /**
+     * Ensure the SQLite database file and directory exist if SQLite is configured.
+     */
+    protected function ensureSqliteDatabaseExists(): void
+    {
+        if (config('database.default') !== 'sqlite') {
+            return;
+        }
+
+        $database = config('database.connections.sqlite.database');
+        if (! is_string($database) || $database === '' || $database === ':memory:') {
+            return;
+        }
+
+        if (! file_exists($database)) {
+            $directory = dirname($database);
+            if (! is_dir($directory)) {
+                @mkdir($directory, 0755, true);
+            }
+            @touch($database);
+        }
     }
 }

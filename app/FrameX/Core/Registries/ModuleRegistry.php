@@ -5,6 +5,7 @@ namespace App\FrameX\Core\Registries;
 use App\FrameX\Core\Contracts\ModuleInterface;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
+use Throwable;
 
 class ModuleRegistry
 {
@@ -27,13 +28,117 @@ class ModuleRegistry
      */
     protected bool $booted = false;
 
-    public function __construct()
+    /**
+     * File-based fallback path for persisting module state without a database.
+     */
+    protected ?string $stateFilePath = null;
+
+    public function __construct(?string $stateFilePath = null)
     {
-        // Load persisted disabled module state if present
-        $disabled = Cache::get('framex:disabled_modules', []);
+        $this->stateFilePath = $stateFilePath
+            ?: (function_exists('storage_path') ? storage_path('framework/framex-modules.json') : null);
+
+        // Safely load disabled modules with file and installation fallback
+        $disabled = $this->loadDisabledModules();
         foreach ($disabled as $id) {
-            $this->disabledModules[$id] = true;
+            $this->disabledModules[(string) $id] = true;
         }
+    }
+
+    /**
+     * Safely load disabled module state with automatic installation and offline fallback.
+     *
+     * @return array<int, string>
+     */
+    protected function loadDisabledModules(): array
+    {
+        // During early bootstrap, package discovery, or installer commands,
+        // use the safe local file state to avoid prematurely hitting unmigrated databases.
+        if ($this->shouldUseFallback()) {
+            return $this->readStateFile();
+        }
+
+        try {
+            if (Cache::has('framex:disabled_modules')) {
+                $cached = Cache::get('framex:disabled_modules');
+
+                return is_array($cached) ? array_values(array_map('strval', $cached)) : [];
+            }
+
+            // In automated test runs, an absent cache key represents a pristine state
+            if (function_exists('app') && app()->runningUnitTests()) {
+                return [];
+            }
+
+            return $this->readStateFile();
+        } catch (Throwable) {
+            // Uninitialized database, missing table, or network partition fallback
+            return $this->readStateFile();
+        }
+    }
+
+    /**
+     * Determine if the registry should use the file fallback directly.
+     */
+    protected function shouldUseFallback(): bool
+    {
+        if (! function_exists('app')) {
+            return true;
+        }
+
+        if (! app()->hasBeenBootstrapped()) {
+            return true;
+        }
+
+        if (app()->runningInConsole() && isset($_SERVER['argv'])) {
+            $earlyCommands = ['package:discover', 'framex:install', 'key:generate', 'env', 'about'];
+            foreach ($earlyCommands as $cmd) {
+                if (in_array($cmd, $_SERVER['argv'], true)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Read persisted module state from local file.
+     *
+     * @return array<int, string>
+     */
+    protected function readStateFile(): array
+    {
+        if ($this->stateFilePath !== null && file_exists($this->stateFilePath)) {
+            $raw = @file_get_contents($this->stateFilePath);
+            if ($raw) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    return array_values(array_map('strval', $decoded));
+                }
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Write disabled module state to local file.
+     *
+     * @param  array<int, string>  $disabled
+     */
+    protected function writeStateFile(array $disabled): void
+    {
+        if ($this->stateFilePath === null) {
+            return;
+        }
+
+        $dir = dirname($this->stateFilePath);
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        @file_put_contents($this->stateFilePath, json_encode($disabled, JSON_PRETTY_PRINT));
     }
 
     /**
@@ -85,6 +190,16 @@ class ModuleRegistry
     }
 
     /**
+     * Get list of disabled module IDs.
+     *
+     * @return array<int, string>
+     */
+    public function disabled(): array
+    {
+        return array_keys($this->disabledModules);
+    }
+
+    /**
      * Enable a module.
      */
     public function enable(string $id): self
@@ -117,9 +232,22 @@ class ModuleRegistry
         return $this;
     }
 
+    /**
+     * Persist disabled module state to both file and Cache.
+     */
     protected function persistDisabledState(): void
     {
-        Cache::forever('framex:disabled_modules', array_keys($this->disabledModules));
+        $disabled = array_keys($this->disabledModules);
+
+        // 1. Always persist to local state file for database-free survivability
+        $this->writeStateFile($disabled);
+
+        // 2. Persist to Cache if runtime cache repository is available
+        try {
+            Cache::forever('framex:disabled_modules', $disabled);
+        } catch (Throwable) {
+            // Safely bypassed during installation or before database migration
+        }
     }
 
     /**
