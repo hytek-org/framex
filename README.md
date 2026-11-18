@@ -102,20 +102,101 @@ A modern full-stack web application built with **Laravel 13**, **React**, **Type
 - **TeamPolicy** - Controls team access and management
 - Authorization middleware for protected routes
 
-## 🛠️ Installation
+## 🛠️ Installation & Setup
 
 ### Prerequisites
-- PHP 8.3 or higher
-- Composer
-- Node.js 18+ and npm/pnpm
-- Git
+- **PHP** 8.3 or higher with `pdo`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `curl` extensions
+- **Composer** 2.2+
+- **Node.js** 18+ and `npm`, `pnpm`, or `yarn`
+- **Git**
 
-### Setup Instructions
+### 1. Interactive Installation via Laravel Starter Kit (Recommended)
 
- **Creating an Application Using a Starter Kit**
-   ```bash
-  laravel new my-app --using=hytek/framex
-   ```
+To create a new application using FrameX as an interactive starter kit, run:
+
+```bash
+laravel new my-app --using=hytek/framex
+```
+
+This immediately triggers the FrameX Interactive Setup Wizard (`php artisan framex:install`), guiding you through:
+1. **Welcome Screen** — FrameX ASCII banner, platform version, and architectural overview.
+2. **Application Configuration** — Name, local/production environment, debug mode, and URL.
+3. **Database Selection** — Automatic SQLite provisioning, or interactive MySQL / PostgreSQL configuration with connection verification and safe database creation.
+4. **Authentication Architecture** — Configurable Fortify capabilities (Standard registration, Email verification, 2FA TOTP, Passkeys).
+5. **Frontend Tooling** — Choice of `npm`, `pnpm`, `yarn`, or manual installation.
+6. **FrameX Business Modules** — Selection of modular extensions with core dependency auto-resolution (`content-studio` platform core locked).
+7. **Execution Pipeline** — Safe `.env` generation (preserving comments and custom settings), application key generation, migrations, storage linking, and cache optimization.
+
+### 2. Manual Installation or Existing Clone
+
+If cloning the repository directly:
+
+```bash
+git clone https://github.com/hytek/framex.git my-app
+cd my-app
+composer install
+php artisan framex:install
+```
+
+### 3. Non-Interactive / CI/CD Deployment
+
+For continuous integration, Docker provisioning, or automated deployment scripts, pass `--no-interaction` along with individual configuration options:
+
+```bash
+php artisan framex:install \
+  --no-interaction \
+  --app-name="Acme Platform" \
+  --app-url="https://acme.example.com" \
+  --app-env=production \
+  --app-debug=false \
+  --db-connection=mysql \
+  --db-host=127.0.0.1 \
+  --db-port=3306 \
+  --db-database=acme_production \
+  --db-username=acme_admin \
+  --db-password="SecurePassword" \
+  --auth-features=registration \
+  --auth-features=two_factor \
+  --package-manager=pnpm \
+  --modules=content-studio \
+  --force
+```
+
+#### Available Installer Options:
+- `--force` : Force re-installation even if FrameX was already installed
+- `--app-name=` : Set application name (`APP_NAME`)
+- `--app-url=` : Set application base URL (`APP_URL`)
+- `--app-env=` : Set environment (`local`, `production`)
+- `--app-debug=` : Toggle debug mode (`true`, `false`)
+- `--db-connection=` : Database driver (`sqlite`, `mysql`, `pgsql`)
+- `--db-host=` : Database server hostname or IP
+- `--db-port=` : Database port (default: 3306 for MySQL, 5432 for PgSQL)
+- `--db-database=` : Database name or SQLite file path
+- `--db-username=` : Database user
+- `--db-password=` : Database password (masked in error reporting)
+- `--auth-features=*` : Fortify auth options (`registration`, `email_verification`, `two_factor`, `passkeys`)
+- `--package-manager=` : Frontend package manager (`npm`, `pnpm`, `yarn`, `skip`)
+- `--modules=*` : Enabled FrameX modules (`content-studio`, etc.)
+- `--seed` : Seed initial demo content and workspace records
+- `--skip-db-check` : Skip live database connectivity verification
+- `--skip-migrations` : Skip running database migrations
+- `--skip-frontend` : Skip installing frontend NPM dependencies
+
+### 4. Health Inspection & Diagnostics
+
+FrameX includes a comprehensive diagnostic health inspection command:
+
+```bash
+php artisan framex:doctor
+```
+
+This verifies:
+- PHP version requirements (>= 8.2)
+- Required PHP extensions (`pdo`, `mbstring`, `curl`, etc.)
+- Database connectivity & active driver
+- Storage and cache directory permissions
+- FrameX Module Registry health & dependency resolution
+- Content Studio blueprint readiness
 
 
 ### Docker Setup (Optional)
@@ -364,5 +445,5 @@ Built with:
 
 ---
 
-**Last Updated:** May 2026
-**Version:** 1.0.0
+**Last Updated:** November 2026
+**Version:** 1.2.0

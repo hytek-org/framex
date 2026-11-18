@@ -79,8 +79,8 @@ class FrameXDoctorCommand extends Command
         $checks[] = ['Database', 'Connection Status', $dbMsg];
 
         // 4. Storage Directory Permissions
-        $storageWritable = is_writable(storage_path());
-        $cacheWritable = is_writable(base_path('bootstrap/cache'));
+        $storageWritable = $this->isPathWritable(storage_path());
+        $cacheWritable = $this->isPathWritable(base_path('bootstrap/cache'));
         $permPass = $storageWritable && $cacheWritable;
         $checks[] = [
             'Filesystem',
@@ -135,5 +135,29 @@ class FrameXDoctorCommand extends Command
         $this->components->warn("Diagnostic inspection completed with {$issues} issue(s) detected. Please review the report above.");
 
         return self::FAILURE;
+    }
+
+    /**
+     * Determine if a directory path is writable in a cross-platform reliable way.
+     */
+    protected function isPathWritable(string $path): bool
+    {
+        if (is_writable($path)) {
+            return true;
+        }
+
+        if (! is_dir($path)) {
+            return false;
+        }
+
+        $testFile = rtrim($path, '/\\').DIRECTORY_SEPARATOR.'.framex_perm_check_'.bin2hex(random_bytes(4));
+        $written = @file_put_contents($testFile, 'test');
+        if ($written !== false) {
+            @unlink($testFile);
+
+            return true;
+        }
+
+        return false;
     }
 }
