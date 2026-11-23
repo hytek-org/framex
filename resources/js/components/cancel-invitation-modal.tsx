@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { MailX } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,27 +43,38 @@ export default function CancelInvitationModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Cancel invitation</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to cancel the invitation for{' '}
-                        <strong>{invitation?.email}</strong>?
-                    </DialogDescription>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader className="gap-2">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                        <MailX className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <DialogTitle className="text-lg font-bold">
+                            Revoke Invitation
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground mt-1">
+                            Are you sure you want to revoke the pending invitation for <strong>{invitation?.email}</strong>? The invitation link will be invalidated immediately.
+                        </DialogDescription>
+                    </div>
                 </DialogHeader>
 
-                <DialogFooter className="gap-2">
+                <DialogFooter className="gap-2 sm:gap-0 mt-4">
                     <DialogClose asChild>
-                        <Button variant="secondary">Keep invitation</Button>
+                        <Button variant="outline" size="sm" type="button">
+                            Keep Invitation
+                        </Button>
                     </DialogClose>
 
                     <Button
                         variant="destructive"
+                        size="sm"
                         data-test="cancel-invitation-confirm"
                         disabled={processing}
                         onClick={cancelInvitation}
+                        className="gap-1.5 font-medium shadow-xs"
                     >
-                        Cancel invitation
+                        <MailX className="h-4 w-4" />
+                        <span>{processing ? 'Revoking...' : 'Revoke Invitation'}</span>
                     </Button>
                 </DialogFooter>
             </DialogContent>

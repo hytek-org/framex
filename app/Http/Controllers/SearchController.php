@@ -85,7 +85,7 @@ class SearchController extends Controller
                 'id' => 'team-settings',
                 'title' => 'Team & Roles',
                 'description' => 'Manage team roles and member permissions',
-                'url' => '/settings/teams',
+                'url' => '/account/teams',
                 'category' => 'Administration',
                 'icon' => 'Users',
             ],

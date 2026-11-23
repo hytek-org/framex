@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\MockBillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -18,10 +19,13 @@ class BillingController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        $isMock = MockBillingService::isMockMode();
 
         // Sync fallback: if checkout=success or sync parameter is present
         if ($request->input('checkout') === 'success' || $request->has('sync')) {
-            $this->syncStripeData($user);
+            if (! $isMock) {
+                $this->syncStripeData($user);
+            }
 
             return redirect()->route('billing.index');
         }
@@ -43,7 +47,9 @@ class BillingController extends Controller
         $currentPlanName = $user->currentPlanName();
         $invoices = [];
 
-        if ($user->stripe_id) {
+        if ($isMock) {
+            $invoices = MockBillingService::getMockInvoices($user);
+        } elseif ($user->stripe_id) {
             try {
                 $invoices = collect($user->invoices())->map(function ($invoice) {
                     return [
@@ -61,10 +67,16 @@ class BillingController extends Controller
 
         $renewsAt = null;
         if ($subscription) {
-            try {
-                $renewsAt = $subscription->asStripeSubscription()?->current_period_end ?? null;
-            } catch (\Exception $e) {
-                $renewsAt = $subscription->ends_at?->timestamp;
+            if ($isMock) {
+                $renewsAt = $subscription->ends_at
+                    ? $subscription->ends_at->timestamp
+                    : Carbon::now()->addDays(30)->timestamp;
+            } else {
+                try {
+                    $renewsAt = $subscription->asStripeSubscription()?->current_period_end ?? null;
+                } catch (\Exception $e) {
+                    $renewsAt = $subscription->ends_at?->timestamp;
+                }
             }
         }
 
@@ -83,6 +95,8 @@ class BillingController extends Controller
             }
         }
 
+        $isStripeConfigured = filled(config('cashier.key'));
+
         return Inertia::render('billing/index', [
             'plans' => $this->plans(),
             'subscription' => [
@@ -97,18 +111,28 @@ class BillingController extends Controller
                 'last_four' => $user->pm_last_four,
             ] : null,
             'invoices' => $invoices,
-            'stripeConfigured' => filled(config('cashier.key')),
+            'isMockMode' => $isMock,
+            'stripeConfigured' => $isMock || $isStripeConfigured,
         ]);
     }
 
     /**
-     * Initiate a new Stripe Checkout session.
+     * Initiate a new Stripe Checkout session or Mock Subscription.
      */
     public function checkout(Request $request, string $plan): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         $normalizedPlan = strtolower(trim($plan));
         if ($normalizedPlan === 'free') {
             return redirect()->route('billing.index');
+        }
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if (MockBillingService::isMockMode()) {
+            MockBillingService::mockSubscribe($user, $normalizedPlan);
+
+            return redirect()->route('billing.index', ['checkout' => 'success']);
         }
 
         $stripeConfig = config('services.stripe') ?? [];
@@ -119,9 +143,6 @@ class BillingController extends Controller
                 'plan' => "The {$plan} plan is not correctly configured in the system.",
             ]);
         }
-
-        /** @var User $user */
-        $user = $request->user();
 
         $checkout = $user->newSubscription('default', $price)
             ->checkout([
@@ -135,8 +156,12 @@ class BillingController extends Controller
     /**
      * Redirect to the customer billing portal.
      */
-    public function portal(Request $request): \Symfony\Component\HttpFoundation\Response
+    public function portal(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
+        if (MockBillingService::isMockMode()) {
+            return redirect()->route('billing.index')->with('status', 'Customer Portal is simulated in Template/Demo Mode.');
+        }
+
         if (! filled(config('cashier.key'))) {
             return back()->withErrors(['stripe' => 'Stripe is not configured.']);
         }
@@ -154,6 +179,12 @@ class BillingController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
+        if (MockBillingService::isMockMode()) {
+            MockBillingService::mockCancel($user);
+
+            return back();
+        }
 
         if ($user->subscribed('default')) {
             $subscription = $user->subscription('default');
@@ -176,6 +207,13 @@ class BillingController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
+        if (MockBillingService::isMockMode()) {
+            MockBillingService::mockResume($user);
+
+            return back();
+        }
+
         $subscription = $user->subscription('default');
 
         if ($subscription && $subscription->onGracePeriod()) {
@@ -198,6 +236,12 @@ class BillingController extends Controller
         /** @var User $user */
         $user = $request->user();
         $normalizedPlan = strtolower(trim($plan));
+
+        if (MockBillingService::isMockMode()) {
+            MockBillingService::mockSwap($user, $normalizedPlan);
+
+            return back();
+        }
 
         if ($normalizedPlan === 'free') {
             if ($user->subscribed('default')) {
@@ -276,6 +320,30 @@ class BillingController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
+        if (MockBillingService::isMockMode() || str_starts_with($invoiceId, 'in_mock_')) {
+            $content = "========================================================\n".
+                "                  FRAMEX INVOICE RECEIPT\n".
+                "========================================================\n".
+                "Invoice ID:   {$invoiceId}\n".
+                "Account:      {$user->email}\n".
+                "Date:         ".now()->toFormattedDateString()."\n".
+                "Status:       PAID (Demo / Simulated)\n".
+                "Vendor:       ".config('app.name', 'FrameX Enterprise')."\n".
+                "--------------------------------------------------------\n".
+                "Description                              Amount\n".
+                "--------------------------------------------------------\n".
+                "Subscription Plan                        $29.00\n".
+                "--------------------------------------------------------\n".
+                "TOTAL PAID:                              $29.00\n".
+                "========================================================\n".
+                "Thank you for using FrameX!\n";
+
+            return response($content, 200, [
+                'Content-Type' => 'text/plain',
+                'Content-Disposition' => 'attachment; filename="invoice-'.$invoiceId.'.txt"',
+            ]);
+        }
 
         return $user->downloadInvoice($invoiceId, [
             'vendor' => config('app.name'),

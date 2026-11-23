@@ -38,5 +38,8 @@ return [
         'price_pro' => env('STRIPE_PRICE_PRO'),
         'price_scale' => env('STRIPE_PRICE_SCALE'),
     ],
+    'billing' => [
+        'mock' => env('BILLING_MOCK', true),
+    ],
 
 ];

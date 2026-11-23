@@ -115,11 +115,6 @@ export function AppSidebar() {
             icon: Bell,
             badge: unreadNotificationsCount,
         },
-        {
-            title: 'Settings',
-            href: '/settings/profile',
-            icon: Settings,
-        },
     ];
 
     return (

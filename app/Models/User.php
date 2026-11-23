@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -36,7 +38,24 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read Collection<int, Membership> $teamMemberships
  * @property-read Collection<int, Team> $teams
  */
-#[Fillable(['name', 'email', 'password', 'current_team_id', 'is_admin', 'locale'])]
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'current_team_id',
+    'is_admin',
+    'locale',
+    'phone',
+    'avatar',
+    'job_title',
+    'department',
+    'timezone',
+    'date_format',
+    'time_format',
+    'theme',
+    'last_login_at',
+    'last_login_ip',
+])]
 #[Hidden([
     'password',
     'two_factor_secret',
@@ -64,7 +83,13 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'is_admin' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    public function accountAuditLogs(): HasMany
+    {
+        return $this->hasMany(AccountAuditLog::class);
     }
 
     public function notificationPreference(): HasOne
@@ -102,9 +127,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         }
 
         $priceId = $subscription->stripe_price;
-        if ($priceId === config('services.stripe.price_pro')) {
+        if ($priceId === config('services.stripe.price_pro') || $priceId === 'price_mock_pro') {
             return 'Pro';
-        } elseif ($priceId === config('services.stripe.price_scale')) {
+        } elseif ($priceId === config('services.stripe.price_scale') || $priceId === 'price_mock_scale') {
             return 'Scale';
         }
 

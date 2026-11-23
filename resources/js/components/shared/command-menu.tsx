@@ -1,10 +1,8 @@
-import { router, usePage } from '@inertiajs/react';
+import { router, usePage } from "@inertiajs/react";
 import {
     BookOpen,
     CreditCard,
     FileText,
-    Folder,
-    Globe,
     Image as ImageIcon,
     Key,
     LayoutGrid,
@@ -12,15 +10,14 @@ import {
     LogOut,
     Moon,
     PenTool,
-    Search,
-    Settings,
     Sparkles,
     Sun,
     Tags,
+    UserIcon,
     Users,
     Zap,
-} from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import {
     CommandDialog,
     CommandEmpty,
@@ -30,10 +27,10 @@ import {
     CommandList,
     CommandSeparator,
     CommandShortcut,
-} from '@/components/ui/command';
-import { useAppearance } from '@/hooks/use-appearance';
-import { toUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
+} from "@/components/ui/command";
+import { useAppearance } from "@/hooks/use-appearance";
+import { toUrl } from "@/lib/utils";
+import { dashboard } from "@/routes";
 
 interface SearchResults {
     contents?: any[];
@@ -48,8 +45,8 @@ interface SearchResults {
 
 export function CommandMenu() {
     const [open, setOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedQuery, setDebouncedQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
     const [results, setResults] = useState<SearchResults>({
         contents: [],
         media: [],
@@ -68,12 +65,12 @@ export function CommandMenu() {
 
     if (!auth?.user) return null;
 
-    const dashboardUrl = currentTeam ? toUrl(dashboard(currentTeam.slug)) : '/';
+    const dashboardUrl = currentTeam ? toUrl(dashboard(currentTeam.slug)) : "/";
 
     // Toggle shortcut (Cmd+K / Ctrl+K)
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 setOpen((prev) => !prev);
             }
@@ -83,11 +80,11 @@ export function CommandMenu() {
             setOpen((prev) => !prev);
         };
 
-        document.addEventListener('keydown', down);
-        window.addEventListener('toggle-command-menu', handleToggle);
+        document.addEventListener("keydown", down);
+        window.addEventListener("toggle-command-menu", handleToggle);
         return () => {
-            document.removeEventListener('keydown', down);
-            window.removeEventListener('toggle-command-menu', handleToggle);
+            document.removeEventListener("keydown", down);
+            window.removeEventListener("toggle-command-menu", handleToggle);
         };
     }, []);
 
@@ -112,7 +109,7 @@ export function CommandMenu() {
                 const response = await fetch(
                     `/${currentTeam.slug}/search-api?q=${encodeURIComponent(debouncedQuery)}`,
                 );
-                if (!response.ok) throw new Error('Search failed');
+                if (!response.ok) throw new Error("Search failed");
                 const data = await response.json();
                 if (active) {
                     setResults({
@@ -127,7 +124,7 @@ export function CommandMenu() {
                     });
                 }
             } catch (err) {
-                console.error('Workspace search failed', err);
+                console.error("Workspace search failed", err);
             } finally {
                 if (active) {
                     setIsLoading(false);
@@ -145,21 +142,18 @@ export function CommandMenu() {
     // Reset search query when dialog is closed
     useEffect(() => {
         if (!open) {
-            setSearchQuery('');
-            setDebouncedQuery('');
+            setSearchQuery("");
+            setDebouncedQuery("");
         }
     }, [open]);
 
-    const navigate = useCallback(
-        (href: string) => {
-            setOpen(false);
-            router.visit(href);
-        },
-        [],
-    );
+    const navigate = useCallback((href: string) => {
+        setOpen(false);
+        router.visit(href);
+    }, []);
 
     const toggleTheme = useCallback(() => {
-        updateAppearance(appearance === 'dark' ? 'light' : 'dark');
+        updateAppearance(appearance === "dark" ? "light" : "dark");
         setOpen(false);
     }, [appearance, updateAppearance]);
 
@@ -189,7 +183,9 @@ export function CommandMenu() {
             </div>
             <CommandList>
                 {!isLoading && !hasResults && searchQuery.length >= 2 && (
-                    <CommandEmpty>No results found for "{searchQuery}".</CommandEmpty>
+                    <CommandEmpty>
+                        No results found for "{searchQuery}".
+                    </CommandEmpty>
                 )}
 
                 {/* --- Quick Actions --- */}
@@ -229,10 +225,12 @@ export function CommandMenu() {
                             {results.contents.map((content) => (
                                 <CommandItem
                                     key={`content-${content.id}`}
-                                    value={`content-${content.id}-${content.title}-${content.contentType?.name || ''}`}
+                                    value={`content-${content.id}-${content.title}-${content.contentType?.name || ""}`}
                                     onSelect={() => {
                                         if (!currentTeam) return;
-                                        navigate(`/${currentTeam.slug}/content/${content.slug}/edit`);
+                                        navigate(
+                                            `/${currentTeam.slug}/content/${content.slug}/edit`,
+                                        );
                                     }}
                                     className="flex items-center justify-between py-2.5"
                                 >
@@ -243,7 +241,9 @@ export function CommandMenu() {
                                                 {content.title}
                                             </span>
                                             <span className="text-xs text-muted-foreground truncate">
-                                                {content.contentType?.name || 'Content'} · /{content.slug}
+                                                {content.contentType?.name ||
+                                                    "Content"}{" "}
+                                                · /{content.slug}
                                             </span>
                                         </div>
                                     </div>
@@ -274,7 +274,8 @@ export function CommandMenu() {
                                     className="flex items-center justify-between py-2.5"
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                        {item.mime_type?.startsWith('image/') && item.url ? (
+                                        {item.mime_type?.startsWith("image/") &&
+                                        item.url ? (
                                             <img
                                                 src={item.url}
                                                 alt=""
@@ -285,10 +286,13 @@ export function CommandMenu() {
                                         )}
                                         <div className="flex flex-col min-w-0">
                                             <span className="font-medium text-foreground truncate">
-                                                {item.original_name || item.filename}
+                                                {item.original_name ||
+                                                    item.filename}
                                             </span>
                                             <span className="text-xs text-muted-foreground">
-                                                {item.mime_type} · {(item.size / 1024).toFixed(0)} KB
+                                                {item.mime_type} ·{" "}
+                                                {(item.size / 1024).toFixed(0)}{" "}
+                                                KB
                                             </span>
                                         </div>
                                     </div>
@@ -334,11 +338,13 @@ export function CommandMenu() {
                                     <span
                                         className={`ml-2 text-[10px] px-2 py-0.5 rounded font-semibold tracking-wide shrink-0 ${
                                             blog.is_published
-                                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
-                                                : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50'
+                                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50"
+                                                : "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50"
                                         }`}
                                     >
-                                        {blog.is_published ? 'Published' : 'Draft'}
+                                        {blog.is_published
+                                            ? "Published"
+                                            : "Draft"}
                                     </span>
                                 </CommandItem>
                             ))}
@@ -394,7 +400,9 @@ export function CommandMenu() {
                                     value={`category-${category.id}-${category.name}`}
                                     onSelect={() => {
                                         if (!currentTeam) return;
-                                        navigate(`/${currentTeam.slug}/manage/categories`);
+                                        navigate(
+                                            `/${currentTeam.slug}/manage/categories`,
+                                        );
                                     }}
                                     className="flex items-center justify-between py-2.5"
                                 >
@@ -402,7 +410,8 @@ export function CommandMenu() {
                                         <div
                                             className="h-2.5 w-2.5 rounded-full shrink-0"
                                             style={{
-                                                backgroundColor: category.color || '#cccccc',
+                                                backgroundColor:
+                                                    category.color || "#cccccc",
                                             }}
                                         />
                                         <span className="font-medium text-neutral-900 dark:text-neutral-100">
@@ -420,7 +429,9 @@ export function CommandMenu() {
                                     value={`tag-${tag.id}-${tag.name}`}
                                     onSelect={() => {
                                         if (!currentTeam) return;
-                                        navigate(`/${currentTeam.slug}/manage/tags`);
+                                        navigate(
+                                            `/${currentTeam.slug}/manage/tags`,
+                                        );
                                     }}
                                     className="flex items-center justify-between py-2.5"
                                 >
@@ -447,7 +458,7 @@ export function CommandMenu() {
                                 <CommandItem
                                     key={member.id}
                                     value={`member-${member.id}-${member.name}`}
-                                    onSelect={() => navigate(`/settings/teams`)}
+                                    onSelect={() => navigate(`/account/teams`)}
                                     className="flex items-center py-3"
                                 >
                                     <Users className="h-4 w-4 text-pink-500 shrink-0 mr-2" />
@@ -472,15 +483,15 @@ export function CommandMenu() {
                         <LayoutGrid className="mr-2" />
                         Dashboard
                     </CommandItem>
-                    <CommandItem onSelect={() => navigate('/billing')}>
+                    <CommandItem onSelect={() => navigate("/billing")}>
                         <CreditCard className="mr-2" />
                         Billing
                     </CommandItem>
-                    <CommandItem onSelect={() => navigate('/api-tokens')}>
+                    <CommandItem onSelect={() => navigate("/api-tokens")}>
                         <Key className="mr-2" />
                         API Tokens
                     </CommandItem>
-                    <CommandItem onSelect={() => navigate('/notifications')}>
+                    <CommandItem onSelect={() => navigate("/notifications")}>
                         <Zap className="mr-2" />
                         Notifications
                     </CommandItem>
@@ -488,17 +499,17 @@ export function CommandMenu() {
 
                 <CommandSeparator />
                 <CommandGroup heading="Settings">
-                    <CommandItem onSelect={() => navigate('/settings/profile')}>
-                        <Settings className="mr-2" />
-                        Profile Settings
+                    <CommandItem onSelect={() => navigate("/profile")}>
+                        <UserIcon className="mr-2" />
+                        View Profile
                     </CommandItem>
-                    <CommandItem onSelect={() => navigate('/settings/security')}>
+                    <CommandItem onSelect={() => navigate("/account/security")}>
                         <Key className="mr-2" />
                         Security Settings
                     </CommandItem>
-                    <CommandItem onSelect={() => navigate('/settings/teams')}>
+                    <CommandItem onSelect={() => navigate("/account/teams")}>
                         <Users className="mr-2" />
-                        Team Settings
+                        Teams & Workspaces
                     </CommandItem>
                 </CommandGroup>
 
@@ -511,13 +522,17 @@ export function CommandMenu() {
                                     key={team.id}
                                     value={`switch-team-${team.name}`}
                                     onSelect={() =>
-                                        navigate(`/settings/teams/${team.slug}/switch`)
+                                        navigate(
+                                            `/account/teams/${team.slug}/switch`,
+                                        )
                                     }
                                 >
                                     <Users className="mr-2" />
                                     {team.name}
                                     {team.isCurrent && (
-                                        <CommandShortcut>Current</CommandShortcut>
+                                        <CommandShortcut>
+                                            Current
+                                        </CommandShortcut>
                                     )}
                                 </CommandItem>
                             ))}
@@ -528,18 +543,18 @@ export function CommandMenu() {
                 <CommandSeparator />
                 <CommandGroup heading="System Actions">
                     <CommandItem onSelect={toggleTheme}>
-                        {appearance === 'dark' ? (
+                        {appearance === "dark" ? (
                             <Sun className="mr-2 text-amber-500" />
                         ) : (
                             <Moon className="mr-2 text-indigo-500" />
                         )}
-                        Toggle {appearance === 'dark' ? 'Light' : 'Dark'} Mode
+                        Toggle {appearance === "dark" ? "Light" : "Dark"} Mode
                         <CommandShortcut>⌘T</CommandShortcut>
                     </CommandItem>
                     <CommandItem
                         onSelect={() => {
                             setOpen(false);
-                            router.post('/logout');
+                            router.post("/logout");
                         }}
                     >
                         <LogOut className="mr-2 text-rose-500" />
