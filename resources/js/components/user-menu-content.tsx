@@ -1,16 +1,17 @@
-import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { Link, router } from "@inertiajs/react";
+import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import { UserInfo } from '@/components/user-info';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { logout } from '@/routes';
-import { edit } from '@/routes/profile';
-import type { User } from '@/types';
+} from "@/components/ui/dropdown-menu";
+import { UserInfo } from "@/components/user-info";
+import { useMobileNavigation } from "@/hooks/use-mobile-navigation";
+import { logout } from "@/routes";
+import { view } from "@/routes/profile";
+import { index } from "@/routes/account";
+import type { User } from "@/types";
 
 type Props = {
     user: User;
@@ -35,13 +36,24 @@ export function UserMenuContent({ user }: Props) {
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                     <Link
-                        className="block w-full cursor-pointer"
-                        href={edit()}
+                        className="flex w-full cursor-pointer items-center"
+                        href={view()}
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
-                        Settings
+                        <UserIcon className="mr-2 size-4 text-muted-foreground" />
+                        Profile
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="flex w-full cursor-pointer items-center"
+                        href={index()}
+                        prefetch
+                        onClick={cleanup}
+                    >
+                        <Settings className="mr-2 size-4 text-muted-foreground" />
+                        Account Settings
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>

@@ -54,6 +54,7 @@ type Props = {
     plans: Plan[];
     subscription: Subscription;
     stripeConfigured: boolean;
+    isMockMode?: boolean;
     paymentMethod: PaymentMethod;
     invoices: Invoice[];
 };
@@ -88,6 +89,7 @@ export default function BillingIndex({
     plans,
     subscription,
     stripeConfigured,
+    isMockMode = false,
     paymentMethod,
     invoices = [],
 }: Props) {
@@ -178,12 +180,24 @@ export default function BillingIndex({
                         title="Billing & Subscription"
                         description="Manage your subscription tier, view your payment methods, and download your billing history."
                     >
+                        {isMockMode && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300">
+                                <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+                                Demo Billing Mode
+                            </span>
+                        )}
                         {stripeConfigured && subscription.name !== 'Free' && (
                             <Button
                                 variant="outline"
                                 size="sm"
                                 className="rounded-full px-5 hover:bg-secondary/80 transition-colors"
-                                onClick={() => router.get('/billing/portal')}
+                                onClick={() => {
+                                    if (isMockMode) {
+                                        toast.info('Customer portal is simulated in Demo Mode.');
+                                    } else {
+                                        router.get('/billing/portal');
+                                    }
+                                }}
                             >
                                 Customer Portal
                                 <ExternalLink className="ml-2 h-3.5 w-3.5 text-muted-foreground" />
@@ -191,6 +205,19 @@ export default function BillingIndex({
                         )}
                     </PageHeader>
                 </FadeIn>
+
+                {isMockMode && (
+                    <FadeIn delay={0.05}>
+                        <div className="rounded-2xl border border-sky-200/60 bg-sky-50/70 p-4 text-xs sm:text-sm text-sky-900 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-300 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Zap className="h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                                <p>
+                                    <strong className="font-semibold">Template Demo Mode:</strong> Subscriptions, upgrades, and cancellations are fully simulated without making external Stripe API calls. Perfect for previewing FrameX before connecting your live keys.
+                                </p>
+                            </div>
+                        </div>
+                    </FadeIn>
+                )}
 
                 <div className="grid gap-10 lg:grid-cols-12">
                     {/* Left & Center: Subscription Management & Invoices */}
@@ -370,7 +397,13 @@ export default function BillingIndex({
                                                     variant="secondary"
                                                     size="sm"
                                                     className="mt-6 w-full rounded-full bg-background border shadow-sm hover:bg-accent"
-                                                    onClick={() => router.get('/billing/portal')}
+                                                    onClick={() => {
+                                                        if (isMockMode) {
+                                                            toast.info('Payment methods are simulated in Demo Mode.');
+                                                        } else {
+                                                            router.get('/billing/portal');
+                                                        }
+                                                    }}
                                                 >
                                                     Update Payment Info
                                                 </Button>

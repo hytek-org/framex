@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { UserMinus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,27 +43,38 @@ export default function RemoveMemberModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Remove team member</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to remove{' '}
-                        <strong>{member?.name}</strong> from this team?
-                    </DialogDescription>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader className="gap-2">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                        <UserMinus className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <DialogTitle className="text-lg font-bold">
+                            Remove Team Member
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground mt-1">
+                            Are you sure you want to remove <strong>{member?.name}</strong> ({member?.email}) from <strong>{team.name}</strong>? They will immediately lose access to this workspace.
+                        </DialogDescription>
+                    </div>
                 </DialogHeader>
 
-                <DialogFooter className="gap-2">
+                <DialogFooter className="gap-2 sm:gap-0 mt-4">
                     <DialogClose asChild>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant="outline" size="sm" type="button">
+                            Cancel
+                        </Button>
                     </DialogClose>
 
                     <Button
                         variant="destructive"
+                        size="sm"
                         data-test="remove-member-confirm"
                         disabled={processing}
                         onClick={removeMember}
+                        className="gap-1.5 font-medium shadow-xs"
                     >
-                        Remove member
+                        <UserMinus className="h-4 w-4" />
+                        <span>{processing ? 'Removing...' : 'Remove Member'}</span>
                     </Button>
                 </DialogFooter>
             </DialogContent>

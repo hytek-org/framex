@@ -49,6 +49,8 @@ Route::get('sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('forms/{slug}', [FormSubmissionController::class, 'show'])->name('forms.public.show');
 Route::post('forms/{slug}/submit', [FormSubmissionController::class, 'submit'])->name('forms.submit');
 
+require __DIR__.'/account.php';
+
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
@@ -191,5 +193,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('admin', AdminController::class)->name('admin.index');
 });
-
-require __DIR__.'/settings.php';

@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { initializeTheme } from "@/hooks/use-appearance";
 import AppLayout from "@/layouts/app-layout";
 import AuthLayout from "@/layouts/auth-layout";
-import SettingsLayout from "@/layouts/settings/layout";
+import AccountLayout from "@/layouts/account/layout";
 import { configureEcho } from "@laravel/echo-react";
 import { useFlashToast } from "./hooks/use-flash-toast";
 import MarketingLayout from "./layouts/marketing-layout";
@@ -41,9 +41,9 @@ void createInertiaApp({
                 return DocsLayout;
             case name.startsWith("forms/"):
                 return PublicFormLayout;
-            case name.startsWith("settings/"):
+            case name.startsWith("account/"):
             case name.startsWith("teams/"):
-                return [AppLayout, SettingsLayout];
+                return [AppLayout, AccountLayout];
             default:
                 return AppLayout;
         }
