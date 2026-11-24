@@ -405,7 +405,7 @@ export default function SubmissionsIndex({
         <>
             <Head title={`${form.name} — Submissions`} />
 
-            <div className="p-6 space-y-6 max-w-7xl mx-auto">
+            <div className="p-6 space-y-6 ">
                 {/* Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-start gap-3">
@@ -663,7 +663,7 @@ export default function SubmissionsIndex({
                                             key={sub.id}
                                             onClick={() => handleOpenDetail(sub)}
                                             className={`cursor-pointer transition-colors hover:bg-muted/40 ${
-                                                isUnread ? 'bg-primary/[0.02]' : ''
+                                                isUnread ? 'bg-primary/2' : ''
                                             }`}
                                         >
                                             <TableCell
@@ -691,7 +691,7 @@ export default function SubmissionsIndex({
                                             {displayFields.map((f) => (
                                                 <TableCell
                                                     key={f.name}
-                                                    className={`text-sm max-w-[220px] truncate ${
+                                                    className={`text-sm max-w-55 truncate ${
                                                         isUnread
                                                             ? 'font-medium text-foreground'
                                                             : 'text-foreground/85'
@@ -941,7 +941,7 @@ export default function SubmissionsIndex({
                                                         <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                                                     </a>
                                                 ) : stringVal ? (
-                                                    <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                                                    <p className="text-sm text-foreground whitespace-pre-wrap wrap-break-word leading-relaxed">
                                                         {stringVal}
                                                     </p>
                                                 ) : (

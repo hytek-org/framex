@@ -77,7 +77,7 @@ export default function PublicFormShow({ form, isEmbed, isPreview }: PublicFormP
     return (
         <>
             <Head title={form.name} />
-            <div className="min-h-screen bg-gradient-to-b from-muted/50 via-background to-background flex flex-col">
+            <div className="min-h-screen bg-linear-to-b from-muted/50 via-background to-background flex flex-col">
                 {isPreview && (
                     <div className="bg-primary text-primary-foreground px-4 py-2 text-center text-xs font-medium flex items-center justify-center gap-2">
                         <Eye className="h-3.5 w-3.5" />
@@ -90,9 +90,9 @@ export default function PublicFormShow({ form, isEmbed, isPreview }: PublicFormP
 
                 <main className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
                     <div className="w-full max-w-2xl space-y-6">
-                        <div className="rounded-2xl border bg-card shadow-lg shadow-black/[0.03] dark:shadow-black/20 overflow-hidden">
+                        <div className="rounded-2xl border bg-card shadow-lg shadow-black/3 dark:shadow-black/20 overflow-hidden">
                             {/* Top subtle accent bar */}
-                            <div className="h-1.5 w-full bg-gradient-to-r from-primary/80 via-primary to-primary/60" />
+                            <div className="h-1.5 w-full bg-linear-to-r from-primary/80 via-primary to-primary/60" />
 
                             <div className="p-6 sm:p-10 space-y-8">
                                 <div className="space-y-3">

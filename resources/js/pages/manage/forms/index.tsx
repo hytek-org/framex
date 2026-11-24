@@ -222,7 +222,7 @@ export default function FormsIndex({ forms, stats, filters, appUrl = '' }: Props
         <>
             <Head title="Forms Engine" />
 
-            <div className="p-6 space-y-6 max-w-7xl mx-auto">
+            <div className="p-6 space-y-6">
                 {/* Page Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -487,7 +487,7 @@ export default function FormsIndex({ forms, stats, filters, appUrl = '' }: Props
                                                         {form.description && (
                                                             <>
                                                                 <span>·</span>
-                                                                <span className="truncate max-w-[220px]">
+                                                                <span className="truncate max-w-55">
                                                                     {form.description}
                                                                 </span>
                                                             </>
