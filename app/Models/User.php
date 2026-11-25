@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Concerns\HasTeams;
 use Database\Factories\UserFactory;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
@@ -66,7 +66,7 @@ use Laravel\Sanctum\HasApiTokens;
     'pm_last_four',
     'trial_ends_at',
 ])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements  PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use Billable, HasApiTokens, HasFactory, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;

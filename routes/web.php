@@ -187,8 +187,6 @@ Route::prefix('{current_team}')
         Route::get('analytics', [AnalyticsTelemetryController::class, 'overview'])->name('analytics.index');
     });
 
-// Public, signed Drive links. These must stay outside the authenticated team
-// middleware group so recipients do not need to sign in or be team members.
 Route::prefix('{current_team}')->group(function () {
     Route::get('drive/shared/file/{file}', [DriveController::class, 'sharedFile'])
         ->whereNumber('file')
