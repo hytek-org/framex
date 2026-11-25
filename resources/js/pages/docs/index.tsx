@@ -1,9 +1,29 @@
-import { Head, Link } from '@inertiajs/react';
-import { BookOpen, Search, ArrowRight, FileText, Sparkles, Home, Layers, Cpu, Box, ShieldCheck, Terminal, Compass } from 'lucide-react';
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Head, Link } from "@inertiajs/react";
+import {
+    ArrowRight,
+    BookOpen,
+    Box,
+    Clock,
+    Compass,
+    Cpu,
+    FileText,
+    Home,
+    Layers,
+    Monitor,
+    Moon,
+    RotateCcw,
+    Search,
+    Sparkles,
+    Sun,
+    Terminal,
+    X,
+} from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import AppLogo from "@/components/app-logo";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAppearance } from "@/hooks/use-appearance";
 
 interface DocItem {
     title: string;
@@ -25,182 +45,477 @@ interface Props {
 }
 
 export default function DocsIndex({ sections, totalDocs }: Props) {
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeSectionSlug, setActiveSectionSlug] = useState<string>("all");
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const { appearance, updateAppearance } = useAppearance();
+    const cycleAppearance = () => {
+        const appearances = ["light", "dark", "system"] as const;
+        const currentIndex = appearances.indexOf(appearance);
+        const nextIndex = (currentIndex + 1) % appearances.length;
+        updateAppearance(appearances[nextIndex]);
+    };
 
-    const filteredSections = sections
-        .map((section) => ({
-            ...section,
-            docs: section.docs.filter(
-                (doc) =>
-                    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (doc.description && doc.description.toLowerCase().includes(searchQuery.toLowerCase()))
-            ),
-        }))
-        .filter((section) => section.docs.length > 0);
+    const getAppearanceIcon = () => {
+        switch (appearance) {
+            case "light":
+                return <Sun className="h-4 w-4" />;
+            case "dark":
+                return <Moon className="h-4 w-4" />;
+            case "system":
+                return <Monitor className="h-4 w-4" />;
+        }
+    };
 
-    const getSectionIcon = (name: string) => {
+    const getAppearanceLabel = () => {
+        switch (appearance) {
+            case "light":
+                return "Light";
+            case "dark":
+                return "Dark";
+            case "system":
+                return "System";
+        }
+    };
+    // Keyboard shortcut: "/" or Cmd/Ctrl + K focuses the search bar
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (
+                (e.key === "/" ||
+                    ((e.metaKey || e.ctrlKey) &&
+                        e.key.toLowerCase() === "k")) &&
+                document.activeElement?.tagName !== "INPUT" &&
+                document.activeElement?.tagName !== "TEXTAREA"
+            ) {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    const getSectionMeta = (name: string) => {
         const lower = name.toLowerCase();
-        if (lower.includes('getting')) return Compass;
-        if (lower.includes('architecture')) return Layers;
-        if (lower.includes('content')) return FileText;
-        if (lower.includes('business')) return Cpu;
-        if (lower.includes('extension')) return Box;
-        if (lower.includes('api')) return Terminal;
-        return BookOpen;
+        if (lower.includes("getting")) {
+            return {
+                icon: Compass,
+                accent: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20",
+            };
+        }
+        if (lower.includes("architecture")) {
+            return {
+                icon: Layers,
+                accent: "text-violet-600 dark:text-violet-400 bg-violet-500/10 border-violet-500/20",
+            };
+        }
+        if (lower.includes("content")) {
+            return {
+                icon: FileText,
+                accent: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+            };
+        }
+        if (lower.includes("business")) {
+            return {
+                icon: Cpu,
+                accent: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
+            };
+        }
+        if (lower.includes("extension")) {
+            return {
+                icon: Box,
+                accent: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20",
+            };
+        }
+        if (lower.includes("api")) {
+            return {
+                icon: Terminal,
+                accent: "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+            };
+        }
+        return {
+            icon: BookOpen,
+            accent: "text-primary bg-primary/10 border-primary/20",
+        };
+    };
+
+    const filteredSections = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+
+        return sections
+            .filter(
+                (section) =>
+                    activeSectionSlug === "all" ||
+                    section.slug === activeSectionSlug,
+            )
+            .map((section) => ({
+                ...section,
+                docs: section.docs.filter(
+                    (doc) =>
+                        !query ||
+                        doc.title.toLowerCase().includes(query) ||
+                        (doc.description &&
+                            doc.description.toLowerCase().includes(query)) ||
+                        (doc.badge && doc.badge.toLowerCase().includes(query)),
+                ),
+            }))
+            .filter((section) => section.docs.length > 0);
+    }, [sections, searchQuery, activeSectionSlug]);
+
+    const visibleDocsCount = useMemo(
+        () =>
+            filteredSections.reduce(
+                (sum, section) => sum + section.docs.length,
+                0,
+            ),
+        [filteredSections],
+    );
+
+    const isFiltered =
+        searchQuery.trim().length > 0 || activeSectionSlug !== "all";
+
+    const resetFilters = () => {
+        setSearchQuery("");
+        setActiveSectionSlug("all");
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            <Head title="Enterprise Documentation & Developer Hub — FrameX" />
+        <div className="min-h-screen bg-background text-foreground selection:bg-primary/15 selection:text-primary">
+            <Head title="Developer Documentation — FrameX" />
 
-            {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+            {/* Clean Google-style Sticky Top Bar */}
+            <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-md">
+                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-3">
-                        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight text-foreground hover:opacity-85">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-xs shadow-sm">
-                                FX
-                            </span>
-                            <span className="font-extrabold tracking-tight">FrameX</span>
-                        </Link>
-                        <span className="text-muted-foreground/50">/</span>
-                        <span className="text-sm font-semibold text-muted-foreground">Documentation Hub</span>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-sm font-medium">
                         <Link
                             href="/"
-                            className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                            className="flex items-center transition-opacity hover:opacity-90"
                         >
-                            <Home className="h-4 w-4" />
-                            Home
+                            <AppLogo />
+                        </Link>
+                        <span className="h-4 w-px bg-border" />
+                        <Link
+                            href="/docs"
+                            className="text-sm font-medium tracking-tight text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            Developers
+                        </Link>
+                        <Badge
+                            variant="secondary"
+                            className="hidden border border-border/60 bg-muted/60 font-mono text-[10px] font-medium sm:inline-flex"
+                        >
+                            v1.0
+                        </Badge>
+                    </div>
+
+                    <nav className="flex items-center gap-2 sm:gap-5">
+                        <Link
+                            href="/"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                        >
+                            <Home className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Home</span>
                         </Link>
                         <Link
                             href="/blogs"
-                            className="text-muted-foreground transition-colors hover:text-foreground"
+                            className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
                         >
                             Blog
                         </Link>
-                        <Link
-                            href="/docs/quickstart-installation-setup"
-                            className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+                          <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={cycleAppearance}
+                        className="h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                        title={`Current: ${getAppearanceLabel()}`}
+                    >
+                        {getAppearanceIcon()}
+                    </Button>
+                        <Button
+                            asChild
+                            size="sm"
+                            className="h-9 rounded-full px-4 text-xs font-medium shadow-xs"
                         >
-                            Quickstart &rarr;
-                        </Link>
-                    </div>
+                            <Link href="/docs/quickstart-installation-setup">
+                                Quickstart
+                                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                            </Link>
+                        </Button>
+                    </nav>
                 </div>
             </header>
 
-            {/* Hero Section */}
-            <section className="relative overflow-hidden border-b bg-gradient-to-b from-muted/30 to-background py-20">
-                <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8 space-y-5">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary shadow-sm">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Static Markdown Architecture · Enterprise Platform Docs
+            {/* Google-inspired Airy Search Hero */}
+            <section className="relative overflow-hidden border-b border-border/60 bg-linear-to-b from-muted/35 via-background to-background">
+                {/* Subtle Architectural Dot Grid */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-size-[20px_20px] opacity-45 mask-[radial-gradient(ellipse_65%_65%_at_50%_20%,#000_45%,transparent_100%)]"
+                />
+
+                <div className="relative mx-auto max-w-4xl px-4 pt-16 pb-12 text-center sm:px-6 sm:pt-20 sm:pb-14 lg:px-8">
+                    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-2xs">
+                        <Sparkles className="h-3.5 w-3.5 text-primary" />
+                        <span>FrameX Developer Documentation</span>
+                        <span className="text-border">•</span>
+                        <span className="font-mono text-[11px] text-foreground">
+                            {totalDocs} Guides
+                        </span>
                     </div>
-                    
-                    <h1 className="text-4xl font-black tracking-tight sm:text-5xl md:text-6xl text-foreground">
-                        FrameX Documentation
+
+                    <h1 className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-5xl sm:leading-[1.12]">
+                        Build with FrameX
                     </h1>
-                    
-                    <p className="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">
-                        Complete technical references, architecture blueprints, module guides, and REST API documentation to build scalable web platforms.
+
+                    <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                        Explore architecture blueprints, module guides, and API
+                        references designed to help you ship faster.
                     </p>
 
-                    {/* Instant Search Bar */}
-                    <div className="mx-auto max-w-xl pt-4">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                    {/* Google-style Pill Search Input */}
+                    <div className="mx-auto mt-8 max-w-2xl">
+                        <div className="group relative flex items-center">
+                            <Search className="pointer-events-none absolute left-5 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
                             <Input
+                                ref={searchInputRef}
                                 type="text"
-                                placeholder="Search guides, modules, commands, API endpoints..."
+                                placeholder="Search documentation, modules, commands, or APIs..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-12 pl-12 pr-4 text-base shadow-sm rounded-xl border-muted-foreground/20 focus-visible:ring-primary"
+                                className="h-14 w-full rounded-full border-border/80 bg-card pr-20 pl-13 text-base shadow-md ring-1 ring-black/3 transition-all placeholder:text-muted-foreground/75 hover:border-border hover:shadow-lg focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10 dark:ring-white/4"
                             />
+
+                            {searchQuery ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchQuery("")}
+                                    aria-label="Clear search"
+                                    className="absolute right-4 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            ) : (
+                                <kbd className="pointer-events-none absolute right-5 hidden rounded-md border border-border/80 bg-muted/60 px-2 py-0.5 font-mono text-[11px] font-medium text-muted-foreground sm:inline-block">
+                                    /
+                                </kbd>
+                            )}
                         </div>
-                        <div className="flex items-center justify-between px-2 pt-2 text-xs text-muted-foreground">
-                            <span>Showing {totalDocs} total technical guides</span>
-                            <span className="font-mono">v1.0.0 Enterprise</span>
+
+                        {/* Quick Topic Filter Pills */}
+                        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setActiveSectionSlug("all")}
+                                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+                                    activeSectionSlug === "all"
+                                        ? "border-foreground bg-foreground text-background shadow-2xs"
+                                        : "border-border/70 bg-card/80 text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground"
+                                }`}
+                            >
+                                All Topics
+                            </button>
+
+                            {sections.map((section) => {
+                                const isActive =
+                                    activeSectionSlug === section.slug;
+                                return (
+                                    <button
+                                        key={section.slug}
+                                        type="button"
+                                        onClick={() =>
+                                            setActiveSectionSlug(section.slug)
+                                        }
+                                        className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+                                            isActive
+                                                ? "border-foreground bg-foreground text-background shadow-2xs"
+                                                : "border-border/70 bg-card/80 text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground"
+                                        }`}
+                                    >
+                                        {section.name}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Documentation Sections Grid */}
-            <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-                {filteredSections.length === 0 ? (
-                    <div className="mx-auto max-w-md text-center py-16">
-                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted shadow-inner">
-                            <FileText className="h-7 w-7 text-muted-foreground" />
+            {/* Main Documentation Directory */}
+            <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                {/* Active Filter Status Strip */}
+                {isFiltered && (
+                    <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/30 px-4 py-3 text-xs">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <span>
+                                Showing{" "}
+                                <strong className="font-semibold tabular-nums text-foreground">
+                                    {visibleDocsCount}
+                                </strong>{" "}
+                                {visibleDocsCount === 1 ? "result" : "results"}
+                            </span>
+                            {searchQuery && (
+                                <span>
+                                    for{" "}
+                                    <strong className="font-medium text-foreground">
+                                        “{searchQuery}”
+                                    </strong>
+                                </span>
+                            )}
                         </div>
-                        <h3 className="mt-4 text-lg font-bold">No documentation found</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            No articles matched your search query "{searchQuery}".
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={resetFilters}
+                            className="h-7 gap-1.5 rounded-full text-xs"
+                        >
+                            <RotateCcw className="h-3 w-3" />
+                            Reset filters
+                        </Button>
+                    </div>
+                )}
+
+                {filteredSections.length === 0 ? (
+                    <div className="mx-auto max-w-md rounded-3xl border border-dashed border-border/80 bg-card/50 px-6 py-16 text-center">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground shadow-2xs">
+                            <Search className="h-5 w-5" />
+                        </div>
+                        <h3 className="mt-4 text-base font-semibold text-foreground">
+                            No matching guides found
+                        </h3>
+                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                            We couldn’t find any documentation matching{" "}
+                            <span className="font-medium text-foreground">
+                                “{searchQuery}”
+                            </span>
+                            . Try a broader keyword or browse all topics.
                         </p>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={resetFilters}
+                            className="mt-5 rounded-full px-4"
+                        >
+                            Clear Search &amp; Filters
+                        </Button>
                     </div>
                 ) : (
                     <div className="space-y-14">
                         {filteredSections.map((section) => {
-                            const SectionIcon = getSectionIcon(section.name);
+                            const { icon: SectionIcon, accent } =
+                                getSectionMeta(section.name);
+
                             return (
-                                <div key={section.name} className="space-y-5">
-                                    <div className="flex items-center justify-between border-b pb-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                <SectionIcon className="h-4 w-4" />
+                                <section
+                                    key={section.slug || section.name}
+                                    className="space-y-5"
+                                >
+                                    {/* Section Header */}
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div
+                                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${accent}`}
+                                            >
+                                                <SectionIcon className="h-4.5 w-4.5" />
                                             </div>
-                                            <h2 className="text-xl font-bold tracking-tight text-foreground">
-                                                {section.name}
-                                            </h2>
+                                            <div>
+                                                <h2 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                                                    {section.name}
+                                                </h2>
+                                            </div>
                                         </div>
-                                        <span className="text-xs font-semibold text-muted-foreground">
-                                            {section.docs.length} {section.docs.length === 1 ? 'guide' : 'guides'}
+
+                                        <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 font-mono text-[11px] tabular-nums text-muted-foreground">
+                                            {section.docs.length}{" "}
+                                            {section.docs.length === 1
+                                                ? "guide"
+                                                : "guides"}
                                         </span>
                                     </div>
 
+                                    {/* Google Material-inspired Rounded Cards */}
                                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                         {section.docs.map((doc) => (
                                             <Link
                                                 key={doc.slug}
                                                 href={`/docs/${doc.slug}`}
-                                                className="group transition-transform hover:-translate-y-0.5"
+                                                className="group relative flex flex-col justify-between rounded-2xl border border-border/75 bg-card p-6 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-muted/20 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                                             >
-                                                <Card className="h-full border border-border/70 transition-all hover:border-primary/40 hover:shadow-md">
-                                                    <CardHeader className="pb-3">
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <CardTitle className="text-base font-semibold group-hover:text-primary transition-colors">
-                                                                {doc.title}
-                                                            </CardTitle>
-                                                            {doc.badge && (
-                                                                <Badge variant="secondary" className="text-[10px] uppercase font-bold shrink-0">
-                                                                    {doc.badge}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        {doc.description && (
-                                                            <CardDescription className="line-clamp-2 text-xs text-muted-foreground/80 leading-relaxed pt-1">
-                                                                {doc.description}
-                                                            </CardDescription>
+                                                <div>
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <h3 className="text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+                                                            {doc.title}
+                                                        </h3>
+                                                        {doc.badge && (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="shrink-0 rounded-full border border-border/60 bg-muted/70 px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase"
+                                                            >
+                                                                {doc.badge}
+                                                            </Badge>
                                                         )}
-                                                    </CardHeader>
-                                                    <CardContent className="pt-0 flex items-center justify-between text-xs text-muted-foreground">
-                                                        <span>{doc.reading_time || '3 min read'}</span>
-                                                        <span className="inline-flex items-center gap-1 font-semibold text-primary group-hover:underline">
-                                                            Read guide
-                                                            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                                                        </span>
-                                                    </CardContent>
-                                                </Card>
+                                                    </div>
+
+                                                    {doc.description && (
+                                                        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                                            {doc.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="mt-6 flex items-center justify-between border-t border-border/50 pt-3.5 text-xs text-muted-foreground">
+                                                    <span className="inline-flex items-center gap-1.5">
+                                                        <Clock className="h-3.5 w-3.5 opacity-65" />
+                                                        {doc.reading_time ||
+                                                            "3 min read"}
+                                                    </span>
+
+                                                    <span className="inline-flex items-center gap-1 font-medium text-primary">
+                                                        <span>Read</span>
+                                                        <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                                                    </span>
+                                                </div>
                                             </Link>
                                         ))}
                                     </div>
-                                </div>
+                                </section>
                             );
                         })}
                     </div>
                 )}
             </main>
+
+            {/* Clean Google Developers Footer */}
+            <footer className="mt-12 border-t border-border/60 bg-muted/20">
+                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-2.5">
+                        <AppLogo />
+                        <span>·</span>
+                        <span>Developer Documentation</span>
+                    </div>
+                    <div className="flex items-center gap-5">
+                        <Link
+                            href="/docs/quickstart-installation-setup"
+                            className="transition-colors hover:text-foreground"
+                        >
+                            Quickstart
+                        </Link>
+                        <Link
+                            href="/blogs"
+                            className="transition-colors hover:text-foreground"
+                        >
+                            Engineering Blog
+                        </Link>
+                        <Link
+                            href="/"
+                            className="transition-colors hover:text-foreground"
+                        >
+                            Home
+                        </Link>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
