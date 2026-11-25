@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('activity_logs', function (Blueprint $table) {
@@ -20,18 +19,49 @@ return new class extends Migration
             $table->index(['team_id', 'created_at']);
         });
 
+        Schema::create('team_folders', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId('team_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('team_folders')
+                ->restrictOnDelete();
+
+            $table->string('name', 120);
+            $table->timestamps();
+
+            $table->index(['team_id', 'parent_id']);
+        });
+
         Schema::create('team_files', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('team_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+
+            $table->foreignId('team_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
+
+            $table->foreignId('folder_id')
+                ->nullable()
+                ->constrained('team_folders')
+                ->nullOnDelete();
+
             $table->string('disk')->default('local');
-            $table->string('path');
-            $table->string('name');
-            $table->string('mime_type')->nullable();
+            $table->string('path')->unique();
+            $table->string('name', 180);
+            $table->string('mime_type', 100)->nullable();
             $table->unsignedBigInteger('size')->default(0);
             $table->timestamps();
 
-            $table->index(['team_id', 'created_at']);
+            $table->index(['team_id', 'folder_id', 'created_at']);
         });
 
         Schema::create('notification_preferences', function (Blueprint $table) {
@@ -59,6 +89,7 @@ return new class extends Migration
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('notification_preferences');
         Schema::dropIfExists('team_files');
+        Schema::dropIfExists('team_folders');
         Schema::dropIfExists('activity_logs');
     }
 };

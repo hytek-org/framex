@@ -125,6 +125,11 @@ class Team extends Model
         return $this->hasMany(TeamFile::class);
     }
 
+    public function folders(): HasMany
+{
+    return $this->hasMany(TeamFolder::class);
+}
+
     public function forms(): HasMany
     {
         return $this->hasMany(Form::class);

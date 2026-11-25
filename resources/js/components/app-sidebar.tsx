@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from "@inertiajs/react";
 import {
     Activity,
     Bell,
@@ -7,6 +7,7 @@ import {
     CreditCard,
     FileText,
     FolderOpen,
+    HardDrive,
     Image as ImageIcon,
     Key,
     LayoutGrid,
@@ -14,11 +15,11 @@ import {
     Tags,
     TrendingUp,
     Webhook,
-} from 'lucide-react';
-import AppLogo from '@/components/app-logo';
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@/components/team-switcher';
+} from "lucide-react";
+import AppLogo from "@/components/app-logo";
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
     Sidebar,
     SidebarContent,
@@ -27,72 +28,70 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+} from "@/components/ui/sidebar";
+import { dashboard } from "@/routes";
+import type { NavItem } from "@/types";
 
 export function AppSidebar() {
     const page = usePage();
     const { currentTeam, unreadNotificationsCount } = page.props;
-    const dashboardUrl = currentTeam
-        ? dashboard(currentTeam.slug)
-        : '/';
+    const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : "/";
 
-    const teamPrefix = currentTeam ? `/${currentTeam.slug}` : '';
+    const teamPrefix = currentTeam ? `/${currentTeam.slug}` : "";
 
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: "Dashboard",
             href: dashboardUrl,
             icon: LayoutGrid,
         },
         {
-            title: 'Activity',
+            title: "Activity",
             href: `${teamPrefix}/activity`,
             icon: Activity,
         },
         {
-            title: 'Files',
-            href: `${teamPrefix}/files`,
-            icon: FileText,
+            title: "Drive",
+            href: `${teamPrefix}/drive`,
+            icon: HardDrive,
         },
         {
-            title: 'Content Studio',
+            title: "Content Studio",
             href: `${teamPrefix}/content`,
             icon: BookOpen,
         },
         {
-            title: 'Media Studio',
+            title: "Media Studio",
             href: `${teamPrefix}/media`,
             icon: ImageIcon,
         },
         {
-            title: 'Blogs',
+            title: "Blogs",
             href: `${teamPrefix}/manage/blogs`,
             icon: BookOpen,
         },
         {
-            title: 'Categories',
+            title: "Categories",
             href: `${teamPrefix}/manage/categories`,
             icon: FolderOpen,
         },
         {
-            title: 'Tags',
+            title: "Tags",
             href: `${teamPrefix}/manage/tags`,
             icon: Tags,
         },
         {
-            title: 'Forms',
+            title: "Forms",
             href: `${teamPrefix}/forms`,
             icon: ClipboardList,
         },
         {
-            title: 'Webhooks',
+            title: "Webhooks",
             href: `${teamPrefix}/webhooks`,
             icon: Webhook,
         },
         {
-            title: 'Analytics',
+            title: "Analytics",
             href: `${teamPrefix}/analytics`,
             icon: TrendingUp,
         },
@@ -100,18 +99,18 @@ export function AppSidebar() {
 
     const secondaryNavItems: NavItem[] = [
         {
-            title: 'Billing',
-            href: '/billing',
+            title: "Billing",
+            href: "/billing",
             icon: CreditCard,
         },
         {
-            title: 'API Tokens',
-            href: '/api-tokens',
+            title: "API Tokens",
+            href: "/api-tokens",
             icon: Key,
         },
         {
-            title: 'Notifications',
-            href: '/notifications',
+            title: "Notifications",
+            href: "/notifications",
             icon: Bell,
             badge: unreadNotificationsCount,
         },

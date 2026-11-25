@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 class DocumentationService
 {
     /**
-     * Get the base directory path for markdown documentation.
+     * Get the base directory path for Markdown documentation.
      */
     public function getDocsPath(): string
     {
@@ -25,17 +25,30 @@ class DocumentationService
         $docs = $this->getAllDocs();
 
         $sections = [];
+
         foreach ($docs as $doc) {
-            $cat = $doc['category'] ?? 'General';
-            if (! isset($sections[$cat])) {
-                $sections[$cat] = [
-                    'name' => $cat,
-                    'slug' => Str::slug($cat),
+            $category = $doc['category'] ?? 'General';
+
+            if (! isset($sections[$category])) {
+                $sections[$category] = [
+                    'name' => $category,
+                    'slug' => Str::slug($category),
                     'order' => $doc['category_order'] ?? 99,
                     'docs' => [],
                 ];
             }
-            $sections[$cat]['docs'][] = [
+
+            // Prevent duplicate entries within a section.
+            $existingSlugs = array_column(
+                $sections[$category]['docs'],
+                'slug'
+            );
+
+            if (in_array($doc['slug'], $existingSlugs, true)) {
+                continue;
+            }
+
+            $sections[$category]['docs'][] = [
                 'title' => $doc['title'],
                 'slug' => $doc['slug'],
                 'description' => $doc['description'] ?? '',
@@ -45,21 +58,31 @@ class DocumentationService
             ];
         }
 
-        // Sort sections by category order
-        uasort($sections, fn ($a, $b) => $a['order'] <=> $b['order']);
+        // Sort sections by category order.
+        uasort(
+            $sections,
+            fn ($a, $b) => $a['order'] <=> $b['order']
+        );
 
-        // Sort docs within each section
-        foreach ($sections as &$sec) {
-            usort($sec['docs'], fn ($a, $b) => $a['order'] <=> $b['order']);
+        // Sort documentation inside each section.
+        foreach ($sections as &$section) {
+            usort(
+                $section['docs'],
+                fn ($a, $b) => $a['order'] <=> $b['order']
+            );
         }
+
+        unset($section);
 
         return array_values($sections);
     }
 
     /**
-     * Retrieve all markdown documentation files metadata and excerpt.
+     * Retrieve all Markdown documentation files.
      *
-     * @return array<string, array<string, mixed>>
+     * Each Markdown file is registered exactly once.
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function getAllDocs(): array
     {
@@ -70,46 +93,87 @@ class DocumentationService
         }
 
         $files = File::allFiles($path);
+
         $docs = [];
 
         foreach ($files as $file) {
-            if ($file->getExtension() !== 'md') {
+            if (strtolower($file->getExtension()) !== 'md') {
                 continue;
             }
 
-            $raw = File::get($file->getRealPath());
+            $realPath = $file->getRealPath();
+
+            if (! $realPath) {
+                continue;
+            }
+
+            $raw = File::get($realPath);
+
             $parsed = $this->parseFrontmatter($raw);
 
-            $relativePath = str_replace('\\', '/', $file->getRelativePathname());
-            $defaultSlug = Str::beforeLast($relativePath, '.md');
-            $pureFileName = Str::beforeLast($file->getFilename(), '.md');
+            $relativePath = str_replace(
+                '\\',
+                '/',
+                $file->getRelativePathname()
+            );
 
-            $slug = $parsed['attributes']['slug'] ?? $pureFileName;
-            $title = $parsed['attributes']['title'] ?? Str::headline($pureFileName);
-            $category = $parsed['attributes']['category'] ?? Str::headline($file->getRelativePath() ?: 'General');
+            $defaultSlug = Str::beforeLast(
+                $relativePath,
+                '.md'
+            );
 
-            $readingTime = $this->calculateReadingTime($parsed['body']);
+            $pureFileName = Str::beforeLast(
+                $file->getFilename(),
+                '.md'
+            );
 
-            $docData = [
+            // Use the custom slug when provided.
+            // Otherwise, preserve the nested relative file path.
+            $slug = trim(
+                (string) (
+                    $parsed['attributes']['slug']
+                    ?? $defaultSlug
+                ),
+                '/'
+            );
+
+            if ($slug === '') {
+                $slug = $defaultSlug;
+            }
+
+            $title = $parsed['attributes']['title']
+                ?? Str::headline($pureFileName);
+
+            $category = $parsed['attributes']['category']
+                ?? Str::headline(
+                    $file->getRelativePath() ?: 'General'
+                );
+
+            $readingTime = $this->calculateReadingTime(
+                $parsed['body']
+            );
+
+            $docs[] = [
                 'slug' => $slug,
                 'full_slug' => $defaultSlug,
-                'file_path' => $file->getRealPath(),
+                'file_path' => $realPath,
                 'title' => $title,
                 'description' => $parsed['attributes']['description'] ?? '',
                 'category' => $category,
-                'category_order' => $parsed['attributes']['category_order'] ?? $this->getCategoryOrder($category),
-                'order' => (int) ($parsed['attributes']['order'] ?? 99),
+                'category_order' => (int) (
+                    $parsed['attributes']['category_order']
+                    ?? $this->getCategoryOrder($category)
+                ),
+                'order' => (int) (
+                    $parsed['attributes']['order'] ?? 99
+                ),
                 'badge' => $parsed['attributes']['badge'] ?? null,
                 'reading_time' => $readingTime,
                 'body' => $parsed['body'],
             ];
-
-            $docs[$slug] = $docData;
-            if ($defaultSlug !== $slug) {
-                $docs[$defaultSlug] = $docData;
-            }
         }
 
+        // Keep each physical Markdown file only once.
         return $docs;
     }
 
@@ -122,13 +186,20 @@ class DocumentationService
     {
         $docs = $this->getAllDocs();
 
-        // 1. Direct match
-        $matched = $docs[$slug] ?? null;
+        // 1. Match custom slug.
+        $matched = null;
 
-        // 2. If not matched, try matching trailing segment
+        foreach ($docs as $doc) {
+            if ($doc['slug'] === $slug) {
+                $matched = $doc;
+                break;
+            }
+        }
+
+        // 2. Fallback to the original relative file path.
         if (! $matched) {
             foreach ($docs as $doc) {
-                if ($doc['slug'] === $slug || $doc['full_slug'] === $slug) {
+                if ($doc['full_slug'] === $slug) {
                     $matched = $doc;
                     break;
                 }
@@ -139,35 +210,54 @@ class DocumentationService
             return null;
         }
 
-        // Render Markdown to HTML and inject Heading IDs
+        // Render Markdown into HTML.
         $renderedHtml = Str::markdown($matched['body']);
-        [$htmlWithAnchors, $toc] = $this->injectHeadingAnchorsAndExtractToc($renderedHtml);
 
-        // Compute Siblings, Previous and Next
+        // Generate heading anchors and table of contents.
+        [$htmlWithAnchors, $toc] =
+            $this->injectHeadingAnchorsAndExtractToc(
+                $renderedHtml
+            );
+
+        // Generate siblings, previous and next navigation.
         $sections = $this->getSections();
+
         $siblings = [];
         $flatList = [];
 
         foreach ($sections as $section) {
-            $isSameCategory = ($section['name'] === $matched['category']);
-            foreach ($section['docs'] as $d) {
-                $flatList[] = $d;
+            $isSameCategory = (
+                $section['name'] === $matched['category']
+            );
+
+            foreach ($section['docs'] as $doc) {
+                $flatList[] = $doc;
+
                 if ($isSameCategory) {
-                    $siblings[] = $d;
+                    $siblings[] = $doc;
                 }
             }
         }
 
         $currentIndex = -1;
-        foreach ($flatList as $idx => $item) {
+
+        foreach ($flatList as $index => $item) {
             if ($item['slug'] === $matched['slug']) {
-                $currentIndex = $idx;
+                $currentIndex = $index;
                 break;
             }
         }
 
-        $prev = ($currentIndex > 0) ? $flatList[$currentIndex - 1] : null;
-        $next = ($currentIndex >= 0 && $currentIndex < count($flatList) - 1) ? $flatList[$currentIndex + 1] : null;
+        $prev = $currentIndex > 0
+            ? $flatList[$currentIndex - 1]
+            : null;
+
+        $next = (
+            $currentIndex >= 0
+            && $currentIndex < count($flatList) - 1
+        )
+            ? $flatList[$currentIndex + 1]
+            : null;
 
         return [
             'title' => $matched['title'],
@@ -186,32 +276,93 @@ class DocumentationService
     }
 
     /**
-     * Parse YAML-style frontmatter headers from markdown raw content.
+     * Parse YAML-style frontmatter from Markdown content.
      *
-     * @return array{attributes: array<string, mixed>, body: string}
+     * Supports basic key/value frontmatter.
+     *
+     * @return array{
+     *     attributes: array<string, mixed>,
+     *     body: string
+     * }
      */
     protected function parseFrontmatter(string $content): array
     {
         $attributes = [];
         $body = $content;
 
-        if (preg_match('/^---\s*[\r\n]+(.*?)[\r\n]+---\s*[\r\n]+(.*)$/s', $content, $matches)) {
+        if (
+            preg_match(
+                '/\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|$)/s',
+                $content,
+                $matches
+            )
+        ) {
             $frontmatter = $matches[1];
-            $body = $matches[2];
 
-            $lines = explode("\n", $frontmatter);
-            foreach ($lines as $line) {
+            $body = substr(
+                $content,
+                strlen($matches[0])
+            );
+
+            foreach (preg_split('/\r?\n/', $frontmatter) as $line) {
                 $line = trim($line);
-                if (empty($line) || str_starts_with($line, '#')) {
+
+                if (
+                    $line === ''
+                    || str_starts_with($line, '#')
+                ) {
                     continue;
                 }
 
-                if (str_contains($line, ':')) {
-                    [$key, $value] = explode(':', $line, 2);
-                    $key = trim($key);
-                    $value = trim($value, " \t\n\r\0\x0B\"'");
-                    $attributes[$key] = $value;
+                if (! str_contains($line, ':')) {
+                    continue;
                 }
+
+                [$key, $value] = explode(':', $line, 2);
+
+                $key = trim($key);
+                $value = trim($value);
+
+                if ($key === '') {
+                    continue;
+                }
+
+                // Remove surrounding quotes.
+                if (
+                    strlen($value) >= 2
+                    && (
+                        (
+                            str_starts_with($value, '"')
+                            && str_ends_with($value, '"')
+                        )
+                        || (
+                            str_starts_with($value, "'")
+                            && str_ends_with($value, "'")
+                        )
+                    )
+                ) {
+                    $value = substr($value, 1, -1);
+                }
+
+                // Convert numeric values.
+                if (
+                    $value !== ''
+                    && is_numeric($value)
+                ) {
+                    $value = $value + 0;
+                }
+
+                // Convert null values.
+                if (in_array(strtolower($value), ['null', '~'], true)) {
+                    $value = null;
+                }
+
+                // Convert boolean values.
+                if (in_array(strtolower((string) $value), ['true', 'false'], true)) {
+                    $value = strtolower($value) === 'true';
+                }
+
+                $attributes[$key] = $value;
             }
         }
 
@@ -222,40 +373,98 @@ class DocumentationService
     }
 
     /**
-     * Calculate estimated reading time in minutes based on word count.
+     * Calculate estimated reading time in minutes.
      */
     protected function calculateReadingTime(string $content): string
     {
-        $wordCount = str_word_count(strip_tags($content));
-        $minutes = max(1, (int) ceil($wordCount / 200));
+        $wordCount = str_word_count(
+            strip_tags($content)
+        );
+
+        $minutes = max(
+            1,
+            (int) ceil($wordCount / 200)
+        );
 
         return "{$minutes} min read";
     }
 
     /**
-     * Inject anchor IDs into H2 and H3 tags and extract Table of Contents.
+     * Inject unique anchor IDs into H2 and H3 tags
+     * and extract the table of contents.
      *
-     * @return array{0: string, 1: array<int, array<string, mixed>>}
+     * @return array{
+     *     0: string,
+     *     1: array<int, array<string, mixed>>
+     * }
      */
-    protected function injectHeadingAnchorsAndExtractToc(string $html): array
-    {
+    protected function injectHeadingAnchorsAndExtractToc(
+        string $html
+    ): array {
         $toc = [];
+        $usedIds = [];
 
-        $htmlWithAnchors = preg_replace_callback('/<h([2-3])>(.*?)<\/h\1>/i', function ($matches) use (&$toc) {
-            $level = (int) $matches[1];
-            $title = strip_tags($matches[2]);
-            $id = Str::slug($title);
+        $htmlWithAnchors = preg_replace_callback(
+            '/<h([2-3])([^>]*)>(.*?)<\/h\1>/is',
+            function ($matches) use (&$toc, &$usedIds) {
+                $level = (int) $matches[1];
+                $attributes = $matches[2];
+                $content = $matches[3];
 
-            $toc[] = [
-                'id' => $id,
-                'title' => $title,
-                'level' => $level,
-            ];
+                $title = trim(
+                    html_entity_decode(
+                        strip_tags($content),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
+                    )
+                );
 
-            return "<h{$level} id=\"{$id}\">{$matches[2]}</h{$level}>";
-        }, $html);
+                $baseId = Str::slug($title);
 
-        return [$htmlWithAnchors, $toc];
+                if ($baseId === '') {
+                    $baseId = 'section';
+                }
+
+                // Ensure every heading has a unique ID.
+                $id = $baseId;
+                $counter = 2;
+
+                while (isset($usedIds[$id])) {
+                    $id = "{$baseId}-{$counter}";
+                    $counter++;
+                }
+
+                $usedIds[$id] = true;
+
+                // Preserve existing attributes except old ID.
+                $attributes = preg_replace(
+                    '/\s+id=(["\']).*?\1/i',
+                    '',
+                    $attributes
+                );
+
+                $toc[] = [
+                    'id' => $id,
+                    'title' => $title,
+                    'level' => $level,
+                ];
+
+                return sprintf(
+                    '<h%d%s id="%s">%s</h%d>',
+                    $level,
+                    $attributes,
+                    e($id),
+                    $content,
+                    $level
+                );
+            },
+            $html
+        );
+
+        return [
+            $htmlWithAnchors ?? $html,
+            $toc,
+        ];
     }
 
     /**

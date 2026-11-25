@@ -395,7 +395,7 @@ export default function FormBuilder({ form, template = '', appUrl = '' }: Props)
 
             <div className="flex flex-col min-h-[calc(100vh-4rem)]">
                 {/* Sticky Studio Header */}
-                <div className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-4 sm:px-6 py-3">
+                <div className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80 px-4 sm:px-6 py-3">
                     <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
                             <Button variant="ghost" size="sm" asChild className="shrink-0">
@@ -1209,16 +1209,16 @@ export default function FormBuilder({ form, template = '', appUrl = '' }: Props)
                                     </div>
 
                                     {/* Live Preview Canvas */}
-                                    <div className="p-4 sm:p-8 flex justify-center min-h-[540px] max-h-[calc(100vh-11rem)] overflow-y-auto">
+                                    <div className="p-4 sm:p-8 flex justify-center min-h-135 max-h-[calc(100vh-11rem)] overflow-y-auto">
                                         <div
                                             className={`w-full transition-all duration-200 ${
                                                 previewViewport === 'mobile'
-                                                    ? 'max-w-[390px]'
+                                                    ? 'max-w-97.5'
                                                     : 'max-w-xl'
                                             }`}
                                         >
                                             <div className="rounded-2xl border bg-card shadow-md overflow-hidden">
-                                                <div className="h-1.5 w-full bg-gradient-to-r from-primary/80 via-primary to-primary/60" />
+                                                <div className="h-1.5 w-full bg-linear-to-r from-primary/80 via-primary to-primary/60" />
                                                 <div className="p-6 sm:p-8 space-y-6">
                                                     <div className="space-y-2">
                                                         <div className="flex items-center justify-between gap-2">

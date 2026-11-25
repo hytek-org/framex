@@ -15,7 +15,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentationController;
-use App\Http\Controllers\FileController;
+use App\Http\Controllers\DriveController;
 use App\Http\Controllers\NotificationCenterController;
 use App\Http\Controllers\PublicTaxonomyController;
 use App\Http\Controllers\SearchController;
@@ -49,7 +49,7 @@ Route::get('sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('forms/{slug}', [FormSubmissionController::class, 'show'])->name('forms.public.show');
 Route::post('forms/{slug}/submit', [FormSubmissionController::class, 'submit'])->name('forms.submit');
 
-require __DIR__.'/account.php';
+require __DIR__ . '/account.php';
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
@@ -57,9 +57,49 @@ Route::prefix('{current_team}')
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::get('search-api', [SearchController::class, 'search'])->name('search.api');
         Route::get('activity', ActivityController::class)->name('activity.index');
-        Route::get('files', [FileController::class, 'index'])->name('files.index');
-        Route::post('files', [FileController::class, 'store'])->name('files.store');
-        Route::delete('files/{file}', [FileController::class, 'destroy'])->name('files.destroy');
+        Route::prefix('drive')->name('drive.')->group(function () {
+            Route::get('/', [DriveController::class, 'index'])
+                ->name('index');
+
+            Route::post('/', [DriveController::class, 'store'])
+                ->middleware('throttle:10,1')
+                ->name('store');
+
+            Route::post('/folders', [DriveController::class, 'createFolder'])
+                ->middleware('throttle:30,1')
+                ->name('folders.store');
+
+            Route::patch('/move', [DriveController::class, 'move'])
+                ->middleware('throttle:30,1')
+                ->name('move');
+
+            Route::patch('/{file}/rename', [DriveController::class, 'renameFile'])
+                ->middleware('throttle:30,1')
+                ->name('rename');
+
+            Route::patch('/folders/{folder}/rename', [DriveController::class, 'renameFolder'])
+                ->middleware('throttle:30,1')
+                ->name('folders.rename');
+
+            Route::delete('/{file}', [DriveController::class, 'destroy'])
+                ->middleware('throttle:30,1')
+                ->name('destroy');
+
+            Route::delete('/folders/{folder}', [DriveController::class, 'destroyFolder'])
+                ->middleware('throttle:30,1')
+                ->name('folders.destroy');
+
+            Route::get('/{file}/download', [DriveController::class, 'download'])
+                ->middleware('throttle:60,1')
+                ->name('download');
+
+            Route::get('/{file}/preview', [DriveController::class, 'preview'])
+                ->middleware('throttle:60,1')
+                ->name('preview');
+
+            Route::post('/{file}/share', [DriveController::class, 'shareFile'])->whereNumber('file')->name('share.file');
+            Route::post('/folders/{folder}/share', [DriveController::class, 'shareFolder'])->whereNumber('folder')->name('share.folder');
+        });
 
         // ── Media Studio ─────────────────────────────────────────────────
         Route::prefix('media')->name('media.')->group(function () {
@@ -146,6 +186,20 @@ Route::prefix('{current_team}')
         // ── FrameX Analytics ──────────────────────────────────────────────
         Route::get('analytics', [AnalyticsTelemetryController::class, 'overview'])->name('analytics.index');
     });
+
+// Public, signed Drive links. These must stay outside the authenticated team
+// middleware group so recipients do not need to sign in or be team members.
+Route::prefix('{current_team}')->group(function () {
+    Route::get('drive/shared/file/{file}', [DriveController::class, 'sharedFile'])
+        ->whereNumber('file')
+        ->middleware(['signed', 'throttle:60,1'])
+        ->name('drive.shared.file');
+
+    Route::get('drive/shared/folder/{folder}', [DriveController::class, 'sharedFolder'])
+        ->whereNumber('folder')
+        ->middleware(['signed', 'throttle:60,1'])
+        ->name('drive.shared.folder');
+});
 
 Route::middleware(['auth'])->group(function () {
     $missingInvitation = function (Request $request) {

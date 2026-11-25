@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['team_id', 'user_id', 'disk', 'path', 'name', 'mime_type', 'size'])]
+#[Fillable(['team_id', 'user_id', 'folder_id', 'disk', 'path', 'name', 'mime_type', 'size'])]
 class TeamFile extends Model
 {
     use HasFactory, LogsActivity;
