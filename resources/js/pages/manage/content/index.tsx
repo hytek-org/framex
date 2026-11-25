@@ -1,4 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import {
     AlertCircle,
     AlertTriangle,
@@ -20,9 +20,9 @@ import {
     Search,
     Trash2,
     X,
-} from 'lucide-react';
-import React, { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -32,18 +32,18 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
     Table,
     TableBody,
@@ -51,8 +51,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentItem {
     id: number;
@@ -102,40 +102,39 @@ interface Props {
 }
 
 type DeleteTarget =
-    | { mode: 'single'; item: ContentItem }
-    | { mode: 'bulk'; count: number }
+    | { mode: "single"; item: ContentItem }
+    | { mode: "bulk"; count: number }
     | null;
 
 const STATUS_TABS = [
-    { value: 'all', label: 'All' },
-    { value: 'published', label: 'Published' },
-    { value: 'draft', label: 'Drafts' },
-    { value: 'in_review', label: 'In Review' },
-    { value: 'scheduled', label: 'Scheduled' },
-    { value: 'archived', label: 'Archived' },
+    { value: "all", label: "All" },
+    { value: "published", label: "Published" },
+    { value: "draft", label: "Drafts" },
+    { value: "in_review", label: "In Review" },
+    { value: "scheduled", label: "Scheduled" },
+    { value: "archived", label: "Archived" },
 ];
 
 export default function Index({ contents, contentTypes, filters }: Props) {
     const { currentTeam } = usePage().props as any;
-    const teamSlug = currentTeam?.slug || '';
+    const teamSlug = currentTeam?.slug || "";
 
-    const [search, setSearch] = useState(filters.search || '');
+    const [search, setSearch] = useState(filters.search || "");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isExporting, setIsExporting] = useState(false);
     const [bulkLoadingAction, setBulkLoadingAction] = useState<string | null>(
-        null
+        null,
     );
 
     const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const hasActiveFilters = Boolean(
-        filters.type || filters.status || filters.search
+        filters.type || filters.status || filters.search,
     );
 
     const isAllSelected =
-        contents.data.length > 0 &&
-        selectedIds.length === contents.data.length;
+        contents.data.length > 0 && selectedIds.length === contents.data.length;
 
     const isIndeterminate =
         selectedIds.length > 0 && selectedIds.length < contents.data.length;
@@ -152,7 +151,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
         setSelectedIds((prev) =>
             prev.includes(id)
                 ? prev.filter((item) => item !== id)
-                : [...prev, id]
+                : [...prev, id],
         );
     };
 
@@ -171,20 +170,18 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                 onSuccess: () => {
                     const count = selectedIds.length;
                     const labelMap: Record<string, string> = {
-                        publish: `Published ${count} item${count > 1 ? 's' : ''}`,
-                        unpublish: `Reverted ${count} item${count > 1 ? 's' : ''} to draft`,
-                        archive: `Archived ${count} item${count > 1 ? 's' : ''}`,
+                        publish: `Published ${count} item${count > 1 ? "s" : ""}`,
+                        unpublish: `Reverted ${count} item${count > 1 ? "s" : ""} to draft`,
+                        archive: `Archived ${count} item${count > 1 ? "s" : ""}`,
                     };
-                    toast.success(
-                        labelMap[action] || 'Bulk action completed'
-                    );
+                    toast.success(labelMap[action] || "Bulk action completed");
                     setSelectedIds([]);
                 },
                 onError: () => {
-                    toast.error('Failed to process bulk action');
+                    toast.error("Failed to process bulk action");
                 },
                 onFinish: () => setBulkLoadingAction(null),
-            }
+            },
         );
     };
 
@@ -192,21 +189,21 @@ export default function Index({ contents, contentTypes, filters }: Props) {
         if (!deleteTarget) return;
         setIsDeleting(true);
 
-        if (deleteTarget.mode === 'single') {
+        if (deleteTarget.mode === "single") {
             const target = deleteTarget.item;
             router.delete(`/${teamSlug}/content/${target.slug}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Content deleted', {
+                    toast.success("Content deleted", {
                         description: target.title,
                     });
                     setSelectedIds((prev) =>
-                        prev.filter((id) => id !== target.id)
+                        prev.filter((id) => id !== target.id),
                     );
                     setDeleteTarget(null);
                 },
                 onError: () => {
-                    toast.error('Could not delete content item');
+                    toast.error("Could not delete content item");
                 },
                 onFinish: () => setIsDeleting(false),
             });
@@ -216,22 +213,22 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                 `/${teamSlug}/content/bulk-action`,
                 {
                     ids: selectedIds,
-                    action: 'delete',
+                    action: "delete",
                 },
                 {
                     preserveScroll: true,
                     onSuccess: () => {
                         toast.success(
-                            `Deleted ${count} content item${count > 1 ? 's' : ''}`
+                            `Deleted ${count} content item${count > 1 ? "s" : ""}`,
                         );
                         setSelectedIds([]);
                         setDeleteTarget(null);
                     },
                     onError: () => {
-                        toast.error('Failed to delete selected items');
+                        toast.error("Failed to delete selected items");
                     },
                     onFinish: () => setIsDeleting(false),
-                }
+                },
             );
         }
     };
@@ -244,30 +241,30 @@ export default function Index({ contents, contentTypes, filters }: Props) {
             const csrfToken =
                 (
                     document.querySelector(
-                        'meta[name="csrf-token"]'
+                        'meta[name="csrf-token"]',
                     ) as HTMLMetaElement
-                )?.content || '';
+                )?.content || "";
             const response = await fetch(`/${teamSlug}/content/bulk-action`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 body: JSON.stringify({
                     ids: selectedIds,
-                    action: 'export_json',
+                    action: "export_json",
                 }),
             });
 
-            if (!response.ok) throw new Error('Export failed');
+            if (!response.ok) throw new Error("Export failed");
 
             const data = await response.json();
             const blob = new Blob([JSON.stringify(data, null, 2)], {
-                type: 'application/json',
+                type: "application/json",
             });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = url;
             a.download = `framex-content-export-${Date.now()}.json`;
             document.body.appendChild(a);
@@ -276,10 +273,10 @@ export default function Index({ contents, contentTypes, filters }: Props) {
             URL.revokeObjectURL(url);
 
             toast.success(
-                `Exported ${selectedIds.length} item${selectedIds.length > 1 ? 's' : ''} as JSON`
+                `Exported ${selectedIds.length} item${selectedIds.length > 1 ? "s" : ""} as JSON`,
             );
         } catch {
-            toast.error('Failed to export content JSON');
+            toast.error("Failed to export content JSON");
         } finally {
             setIsExporting(false);
         }
@@ -290,7 +287,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
         router.get(
             `/${teamSlug}/content`,
             { ...filters, search: search || undefined, page: 1 },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 
@@ -299,7 +296,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
         router.get(
             `/${teamSlug}/content`,
             { ...filters, type: typeSlug || undefined, page: 1 },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 
@@ -309,60 +306,60 @@ export default function Index({ contents, contentTypes, filters }: Props) {
             `/${teamSlug}/content`,
             {
                 ...filters,
-                status: statusValue === 'all' ? undefined : statusValue,
+                status: statusValue === "all" ? undefined : statusValue,
                 page: 1,
             },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 
     const clearAllFilters = () => {
-        setSearch('');
+        setSearch("");
         setSelectedIds([]);
         router.get(`/${teamSlug}/content`, {}, { preserveState: true });
     };
 
     const getInitials = (name?: string | null) => {
-        if (!name) return '?';
+        if (!name) return "?";
         return name
-            .split(' ')
+            .split(" ")
             .map((part) => part[0])
             .slice(0, 2)
-            .join('')
+            .join("")
             .toUpperCase();
     };
 
     const renderStatusBadge = (status: string) => {
         switch (status) {
-            case 'published':
+            case "published":
                 return (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200/80 bg-emerald-50/80 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                         Published
                     </span>
                 );
-            case 'scheduled':
+            case "scheduled":
                 return (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-violet-200/80 bg-violet-50/80 px-2 py-0.5 text-[11px] font-medium text-violet-700 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-400">
                         <Clock className="h-3 w-3" />
                         Scheduled
                     </span>
                 );
-            case 'in_review':
+            case "in_review":
                 return (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200/80 bg-amber-50/80 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-400">
                         <AlertCircle className="h-3 w-3" />
                         In Review
                     </span>
                 );
-            case 'archived':
+            case "archived":
                 return (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                         <Archive className="h-3 w-3" />
                         Archived
                     </span>
                 );
-            case 'draft':
+            case "draft":
             default:
                 return (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-border/80 bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
@@ -375,10 +372,10 @@ export default function Index({ contents, contentTypes, filters }: Props) {
 
     const pageSummary = useMemo(() => {
         const published = contents.data.filter(
-            (i) => i.status === 'published'
+            (i) => i.status === "published",
         ).length;
         const drafts = contents.data.filter(
-            (i) => i.status === 'draft' || i.status === 'in_review'
+            (i) => i.status === "draft" || i.status === "in_review",
         ).length;
         return { published, drafts };
     }, [contents.data]);
@@ -403,8 +400,8 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                     variant="secondary"
                                     className="border border-border/60 bg-muted/60 font-mono text-[11px] font-medium tabular-nums"
                                 >
-                                    {contents.total.toLocaleString()}{' '}
-                                    {contents.total === 1 ? 'entry' : 'entries'}
+                                    {contents.total.toLocaleString()}{" "}
+                                    {contents.total === 1 ? "entry" : "entries"}
                                 </Badge>
                             </div>
                             <p className="mt-1 text-sm text-muted-foreground">
@@ -429,7 +426,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                     <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
                         {/* Status Tabs */}
                         <Tabs
-                            value={filters.status || 'all'}
+                            value={filters.status || "all"}
                             onValueChange={handleFilterStatus}
                             className="w-full lg:w-auto"
                         >
@@ -463,7 +460,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setSearch('');
+                                            setSearch("");
                                             if (filters.search) {
                                                 router.get(
                                                     `/${teamSlug}/content`,
@@ -472,7 +469,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                         search: undefined,
                                                         page: 1,
                                                     },
-                                                    { preserveState: true }
+                                                    { preserveState: true },
                                                 );
                                             }
                                         }}
@@ -497,8 +494,8 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                     onClick={() => handleFilterType(undefined)}
                                     className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
                                         !filters.type
-                                            ? 'border-primary/40 bg-primary/10 text-primary'
-                                            : 'border-border/60 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                            ? "border-primary/40 bg-primary/10 text-primary"
+                                            : "border-border/60 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                     }`}
                                 >
                                     All
@@ -514,8 +511,8 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                             }
                                             className={`rounded-md border px-2.5 py-1 text-xs font-medium capitalize transition-colors ${
                                                 active
-                                                    ? 'border-primary/40 bg-primary/10 text-primary'
-                                                    : 'border-border/60 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                                    ? "border-primary/40 bg-primary/10 text-primary"
+                                                    : "border-border/60 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                             }`}
                                         >
                                             {type.name}
@@ -549,8 +546,8 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                             </span>
                             <span className="text-xs font-medium text-foreground sm:text-sm">
                                 {selectedIds.length === 1
-                                    ? 'entry selected'
-                                    : 'entries selected'}
+                                    ? "entry selected"
+                                    : "entries selected"}
                             </span>
                         </div>
 
@@ -559,10 +556,10 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                 size="sm"
                                 variant="outline"
                                 disabled={Boolean(bulkLoadingAction)}
-                                onClick={() => executeBulkAction('publish')}
+                                onClick={() => executeBulkAction("publish")}
                                 className="h-8 gap-1.5 text-xs"
                             >
-                                {bulkLoadingAction === 'publish' ? (
+                                {bulkLoadingAction === "publish" ? (
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                 ) : (
                                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
@@ -574,10 +571,10 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                 size="sm"
                                 variant="outline"
                                 disabled={Boolean(bulkLoadingAction)}
-                                onClick={() => executeBulkAction('unpublish')}
+                                onClick={() => executeBulkAction("unpublish")}
                                 className="h-8 text-xs"
                             >
-                                {bulkLoadingAction === 'unpublish' && (
+                                {bulkLoadingAction === "unpublish" && (
                                     <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                                 )}
                                 Move to Draft
@@ -587,10 +584,10 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                 size="sm"
                                 variant="outline"
                                 disabled={Boolean(bulkLoadingAction)}
-                                onClick={() => executeBulkAction('archive')}
+                                onClick={() => executeBulkAction("archive")}
                                 className="h-8 gap-1.5 text-xs"
                             >
-                                {bulkLoadingAction === 'archive' ? (
+                                {bulkLoadingAction === "archive" ? (
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                 ) : (
                                     <Archive className="h-3.5 w-3.5 text-muted-foreground" />
@@ -620,7 +617,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                 variant="destructive"
                                 onClick={() =>
                                     setDeleteTarget({
-                                        mode: 'bulk',
+                                        mode: "bulk",
                                         count: selectedIds.length,
                                     })
                                 }
@@ -654,7 +651,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                             isAllSelected
                                                 ? true
                                                 : isIndeterminate
-                                                  ? 'indeterminate'
+                                                  ? "indeterminate"
                                                   : false
                                         }
                                         onCheckedChange={toggleSelectAll}
@@ -695,13 +692,13 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                             </div>
                                             <p className="mt-3.5 text-sm font-medium text-foreground">
                                                 {hasActiveFilters
-                                                    ? 'No matching content found'
-                                                    : 'Your content studio is empty'}
+                                                    ? "No matching content found"
+                                                    : "Your content studio is empty"}
                                             </p>
                                             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                                                 {hasActiveFilters
-                                                    ? 'Try adjusting your search query or clearing active status and type filters.'
-                                                    : 'Create your first article, guide, or structured entry to begin publishing.'}
+                                                    ? "Try adjusting your search query or clearing active status and type filters."
+                                                    : "Create your first article, guide, or structured entry to begin publishing."}
                                             </p>
                                             {hasActiveFilters ? (
                                                 <Button
@@ -733,7 +730,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                             ) : (
                                 contents.data.map((item) => {
                                     const isSelected = selectedIds.includes(
-                                        item.id
+                                        item.id,
                                     );
                                     const displayDate =
                                         item.published_at || item.created_at;
@@ -743,13 +740,13 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                             key={item.id}
                                             data-state={
                                                 isSelected
-                                                    ? 'selected'
+                                                    ? "selected"
                                                     : undefined
                                             }
                                             className={`group transition-colors ${
                                                 isSelected
-                                                    ? 'bg-primary/[0.04] hover:bg-primary/[0.06]'
-                                                    : 'hover:bg-muted/30'
+                                                    ? "bg-primary/[0.04] hover:bg-primary/[0.06]"
+                                                    : "hover:bg-muted/30"
                                             }`}
                                         >
                                             <TableCell className="py-3.5 pl-4">
@@ -766,9 +763,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                 <div className="flex items-start gap-3">
                                                     {item.cover_image ? (
                                                         <img
-                                                            src={
-                                                                item.cover_image
-                                                            }
+                                                            src={`/storage/${item.cover_image}`}
                                                             alt=""
                                                             className="mt-0.5 h-10 w-14 shrink-0 rounded-md border border-border/60 object-cover"
                                                         />
@@ -793,18 +788,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                             <span className="truncate font-mono text-[11px]">
                                                                 /{item.slug}
                                                             </span>
-                                                            {item.excerpt && (
-                                                                <>
-                                                                    <span className="text-border">
-                                                                        •
-                                                                    </span>
-                                                                    <span className="line-clamp-1">
-                                                                        {
-                                                                            item.excerpt
-                                                                        }
-                                                                    </span>
-                                                                </>
-                                                            )}
+                                                           
                                                         </div>
                                                     </div>
                                                 </div>
@@ -816,7 +800,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                     className="rounded-md border border-border/50 px-2 py-0.5 text-[11px] font-normal capitalize"
                                                 >
                                                     {item.content_type?.name ||
-                                                        'Post'}
+                                                        "Post"}
                                                 </Badge>
                                             </TableCell>
 
@@ -834,7 +818,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                                     item
                                                                         .category
                                                                         .color ||
-                                                                    'var(--primary)',
+                                                                    "var(--primary)",
                                                             }}
                                                         />
                                                         {item.category.name}
@@ -851,7 +835,8 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                     <div className="flex items-center gap-2">
                                                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border/70 bg-muted text-[10px] font-semibold text-muted-foreground">
                                                             {getInitials(
-                                                                item.author.name
+                                                                item.author
+                                                                    .name,
                                                             )}
                                                         </span>
                                                         <span className="truncate text-xs text-muted-foreground">
@@ -869,21 +854,21 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                 <span
                                                     title={
                                                         item.published_at
-                                                            ? 'Published date'
-                                                            : 'Created date'
+                                                            ? "Published date"
+                                                            : "Created date"
                                                     }
                                                     className="inline-flex items-center gap-1.5"
                                                 >
                                                     <Calendar className="h-3 w-3 opacity-65" />
                                                     {new Date(
-                                                        displayDate
+                                                        displayDate,
                                                     ).toLocaleDateString(
                                                         undefined,
                                                         {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric',
-                                                        }
+                                                            month: "short",
+                                                            day: "numeric",
+                                                            year: "numeric",
+                                                        },
                                                     )}
                                                 </span>
                                             </TableCell>
@@ -923,9 +908,9 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                             onClick={() =>
                                                                 setDeleteTarget(
                                                                     {
-                                                                        mode: 'single',
+                                                                        mode: "single",
                                                                         item,
-                                                                    }
+                                                                    },
                                                                 )
                                                             }
                                                             className="text-destructive focus:bg-destructive/10 focus:text-destructive"
@@ -948,15 +933,15 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                         <div className="flex flex-col justify-between gap-3 border-t border-border/60 bg-muted/20 px-4 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center">
                             <div className="flex items-center gap-3">
                                 <span>
-                                    Showing{' '}
+                                    Showing{" "}
                                     <strong className="font-medium tabular-nums text-foreground">
                                         {contents.from}
                                     </strong>
                                     –
                                     <strong className="font-medium tabular-nums text-foreground">
                                         {contents.to}
-                                    </strong>{' '}
-                                    of{' '}
+                                    </strong>{" "}
+                                    of{" "}
                                     <strong className="font-medium tabular-nums text-foreground">
                                         {contents.total.toLocaleString()}
                                     </strong>
@@ -965,7 +950,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                     |
                                 </span>
                                 <span className="hidden font-mono text-[11px] sm:inline">
-                                    {pageSummary.published} published ·{' '}
+                                    {pageSummary.published} published ·{" "}
                                     {pageSummary.drafts} in progress on page
                                 </span>
                             </div>
@@ -1005,8 +990,8 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                                                 preserveScroll
                                                 className={`inline-flex h-7 min-w-7 items-center justify-center rounded-md px-2 font-mono text-xs font-medium tabular-nums transition-colors ${
                                                     link.active
-                                                        ? 'bg-primary text-primary-foreground shadow-2xs'
-                                                        : 'border border-transparent text-muted-foreground hover:border-border/70 hover:bg-background hover:text-foreground'
+                                                        ? "bg-primary text-primary-foreground shadow-2xs"
+                                                        : "border border-transparent text-muted-foreground hover:border-border/70 hover:bg-background hover:text-foreground"
                                                 }`}
                                             >
                                                 {isPrev ? (
@@ -1045,9 +1030,9 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                             <AlertTriangle className="h-5 w-5" />
                         </div>
                         <AlertDialogTitle>
-                            {deleteTarget?.mode === 'bulk'
-                                ? `Delete ${deleteTarget.count} content ${deleteTarget.count === 1 ? 'item' : 'items'}?`
-                                : 'Delete content entry?'}
+                            {deleteTarget?.mode === "bulk"
+                                ? `Delete ${deleteTarget.count} content ${deleteTarget.count === 1 ? "item" : "items"}?`
+                                : "Delete content entry?"}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. The selected content
@@ -1056,7 +1041,7 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    {deleteTarget?.mode === 'single' && (
+                    {deleteTarget?.mode === "single" && (
                         <div className="rounded-lg border border-border/70 bg-muted/40 p-3 text-xs">
                             <div className="font-medium text-foreground">
                                 {deleteTarget.item.title}
@@ -1082,9 +1067,9 @@ export default function Index({ contents, contentTypes, filters }: Props) {
                             {isDeleting && (
                                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                             )}
-                            {deleteTarget?.mode === 'bulk'
+                            {deleteTarget?.mode === "bulk"
                                 ? `Delete ${deleteTarget.count} Items`
-                                : 'Delete Entry'}
+                                : "Delete Entry"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1094,12 +1079,12 @@ export default function Index({ contents, contentTypes, filters }: Props) {
 }
 
 Index.layout = (props: { currentTeam?: { slug?: string } }) => {
-    const teamSlug = props.currentTeam?.slug || '';
+    const teamSlug = props.currentTeam?.slug || "";
 
     return {
         breadcrumbs: [
-            { title: 'Dashboard', href: `/${teamSlug}/dashboard` },
-            { title: 'Content Studio', href: `/${teamSlug}/content` },
+            { title: "Dashboard", href: `/${teamSlug}/dashboard` },
+            { title: "Content Studio", href: `/${teamSlug}/content` },
         ],
     };
 };

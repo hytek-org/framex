@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import './blog.css';
+@import './rich-text-editor.css';
 @plugin "@tailwindcss/typography";
 @import 'tw-animate-css';
 

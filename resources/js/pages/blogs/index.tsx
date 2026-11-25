@@ -20,19 +20,19 @@ export default function BlogsIndex({ blogs, categories, tags }: { blogs: any; ca
             <Head title="Blog — Insights & Ideas" />
 
             {/* Hero */}
-            <section className="relative pt-24 pb-16 overflow-hidden border-b">
-                <div className="absolute inset-0 gradient-mesh pointer-events-none" />
+            <section className="relative pt-28 pb-16 overflow-hidden border-b border-border/60">
+                <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[360px] bg-[radial-gradient(ellipse_at_top,rgba(26,115,232,0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(138,180,248,0.10),transparent_65%)]" />
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold text-primary animate-fade-in-up">
-                        <Hash className="h-3 w-3" /> Expert Insights
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground">
+                        <Hash className="h-3 w-3 text-[#1A73E8] dark:text-[#8AB4F8]" /> Editorial &amp; Engineering
                     </div>
-                    <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tighter animate-fade-in-up stagger-1">
-                        Our <span className="text-gradient-brand">Blog</span>
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-foreground">
+                        FrameX Blog
                     </h1>
-                    <p className="text-lg text-muted-foreground max-w-xl mx-auto animate-fade-in-up stagger-2">
-                        Discover strategies, ideas, and deep insights to power your enterprise.
+                    <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
+                        Guides, architectural deep-dives, and product updates from the FrameX team.
                     </p>
-                    <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground animate-fade-in-up stagger-3">
+                    <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
                         <span className="font-semibold text-foreground tabular-nums">{blogs.total}</span> articles
                         <span className="h-1 w-1 rounded-full bg-border" />
                         <span className="font-semibold text-foreground tabular-nums">{categories.length}</span> categories

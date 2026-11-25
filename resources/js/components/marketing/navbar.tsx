@@ -10,21 +10,25 @@ import { dashboard, login, register } from '@/routes';
 const navLinks = [
     { label: 'Features', href: '/features' },
     { label: 'Pricing', href: '/pricing' },
+    { label: 'Docs', href: '/docs' },
+    { label: 'Blog', href: '/blogs' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ];
 
 export function Navbar() {
-    const { auth, currentTeam } = usePage().props as any;
+    const { auth, currentTeam } = usePage().props as {
+        auth: { user?: unknown };
+        currentTeam?: { slug: string } | null;
+    };
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const { appearance, updateAppearance } = useAppearance();
     const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : '/';
 
-    // Premium scroll effect: Transparent at top, frosted glass on scroll
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
+            setScrolled(window.scrollY > 12);
         };
         window.addEventListener('scroll', handleScroll);
 
@@ -49,139 +53,136 @@ export function Navbar() {
         }
     };
 
-    const getAppearanceLabel = () => {
-        switch (appearance) {
-            case 'light':
-                return 'Light';
-            case 'dark':
-                return 'Dark';
-            case 'system':
-                return 'System';
-        }
-    };
-
     return (
         <header
             className={cn(
-                'fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                'fixed inset-x-0 top-0 z-50 transition-all duration-300',
                 scrolled
-                    ? 'border-b border-border/40 bg-background/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] backdrop-blur-2xl dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)]'
-                    : 'border-b border-transparent bg-background/0'
+                    ? 'border-b border-border/60 bg-background/90 shadow-xs backdrop-blur-xl'
+                    : 'border-b border-transparent bg-background/0',
             )}
         >
-            <nav className="flex h-16 w-full items-center justify-between px-6 md:px-8 lg:px-12">
-                
-                {/* Logo - Left Aligned */}
-                <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-                    <AppLogoIcon className="h-7 w-7 fill-current text-foreground" />
+            <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
+                {/* Brand */}
+                <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-85">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1A73E8]/10 text-[#1A73E8] dark:bg-[#8AB4F8]/15 dark:text-[#8AB4F8]">
+                        <AppLogoIcon className="h-5 w-5 fill-current" />
+                    </div>
                     <span className="text-lg font-medium tracking-tight text-foreground">
                         FrameX
                     </span>
                 </Link>
 
-                {/* Desktop Nav - Absolute Centered (Vercel/Linear style) */}
-                <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
+                {/* Desktop Nav */}
+                <div className="hidden items-center gap-1 md:flex">
                     {navLinks.map((link) => (
                         <Link
                             key={link.label}
                             href={link.href}
-                            className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/60 hover:text-foreground"
+                            className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                         >
                             {link.label}
                         </Link>
                     ))}
                 </div>
 
-                {/* Right side Actions */}
-                <div className="hidden items-center gap-3 md:flex">
+                {/* Desktop Actions */}
+                <div className="hidden items-center gap-2.5 md:flex">
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={cycleAppearance}
-                        className="h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
-                        title={`Current: ${getAppearanceLabel()}`}
+                        className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                        title={`Theme: ${appearance}`}
                     >
                         {getAppearanceIcon()}
                     </Button>
-                    
-                    {auth.user ? (
-                        <Button asChild size="sm" className="h-9 rounded-full px-6 font-medium transition-transform hover:scale-105">
+
+                    {auth?.user ? (
+                        <Button
+                            asChild
+                            size="sm"
+                            className="h-9 rounded-full bg-[#1A73E8] px-5 font-medium text-white hover:bg-[#1557B0] dark:bg-[#8AB4F8] dark:text-[#041E49] dark:hover:bg-[#A8C7FA]"
+                        >
                             <Link href={dashboardUrl}>Dashboard</Link>
                         </Button>
                     ) : (
-                        <div className="flex items-center gap-2">
+                        <>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 asChild
-                                className="h-9 rounded-full px-4 font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                                className="h-9 rounded-full px-4 font-medium text-foreground hover:bg-muted/70"
                             >
                                 <Link href={login()}>Sign in</Link>
                             </Button>
-                            <Button asChild size="sm" className="h-9 rounded-full px-6 font-medium transition-transform hover:scale-105">
-                                <Link href={register()}>Get Started</Link>
+                            <Button
+                                asChild
+                                size="sm"
+                                className="h-9 rounded-full bg-[#1A73E8] px-5 font-medium text-white shadow-xs hover:bg-[#1557B0] dark:bg-[#8AB4F8] dark:text-[#041E49] dark:hover:bg-[#A8C7FA]"
+                            >
+                                <Link href={register()}>Get started</Link>
                             </Button>
-                        </div>
+                        </>
                     )}
                 </div>
 
                 {/* Mobile Menu Toggle */}
-                <button
-                    className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground md:hidden"
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    aria-label="Toggle menu"
-                >
-                    {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
+                <div className="flex items-center gap-2 md:hidden">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={cycleAppearance}
+                        className="h-9 w-9 rounded-full text-muted-foreground"
+                        aria-label="Toggle theme"
+                    >
+                        {getAppearanceIcon()}
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="h-9 w-9 rounded-full"
+                        aria-label="Toggle navigation menu"
+                    >
+                        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </Button>
+                </div>
             </nav>
 
-            {/* Mobile Menu Dropdown */}
-            <div
-                className={cn(
-                    'overflow-hidden border-b bg-background/95 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:hidden',
-                    mobileOpen ? 'max-h-80 border-border/40 shadow-lg' : 'max-h-0 border-transparent'
-                )}
-            >
-                <div className="space-y-1 px-6 pb-6 pt-2">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.label}
-                            href={link.href}
-                            className="block rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
-                            onClick={() => setMobileOpen(false)}
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                    
-                    <div className="mt-4 flex flex-col gap-3 border-t border-border/30 pt-5">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={cycleAppearance}
-                            className="h-10 w-full justify-center rounded-xl bg-transparent"
-                        >
-                            {getAppearanceIcon()}
-                            <span className="ml-2">{getAppearanceLabel()} Theme</span>
-                        </Button>
-                        
-                        {auth.user ? (
-                            <Button asChild size="sm" className="h-10 w-full rounded-xl font-medium">
+            {/* Mobile Drawer */}
+            {mobileOpen && (
+                <div className="border-b border-border/60 bg-background/95 px-6 pb-6 pt-2 backdrop-blur-xl md:hidden">
+                    <div className="flex flex-col space-y-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.label}
+                                href={link.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="rounded-xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2 border-t border-border/50 pt-4">
+                        {auth?.user ? (
+                            <Button asChild className="w-full rounded-full bg-[#1A73E8] text-white">
                                 <Link href={dashboardUrl}>Dashboard</Link>
                             </Button>
                         ) : (
-                            <div className="grid grid-cols-2 gap-3">
-                                <Button variant="outline" size="sm" asChild className="h-10 rounded-xl bg-transparent font-medium">
+                            <>
+                                <Button asChild variant="outline" className="w-full rounded-full">
                                     <Link href={login()}>Sign in</Link>
                                 </Button>
-                                <Button size="sm" asChild className="h-10 rounded-xl font-medium">
-                                    <Link href={register()}>Get Started</Link>
+                                <Button asChild className="w-full rounded-full bg-[#1A73E8] text-white">
+                                    <Link href={register()}>Get started</Link>
                                 </Button>
-                            </div>
+                            </>
                         )}
                     </div>
                 </div>
-            </div>
+            )}
         </header>
     );
 }

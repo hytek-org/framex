@@ -8,16 +8,16 @@ export default function CategoriesIndex({ categories, total }: { categories: any
             <Head title="Categories — Blog" />
 
             {/* ── Hero ──────────────────────────────────────────────── */}
-            <section className="relative pt-28 pb-16 border-b overflow-hidden">
-                <div className="absolute inset-0 gradient-mesh pointer-events-none" />
+            <section className="relative pt-28 pb-16 border-b border-border/60 overflow-hidden">
+                <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[360px] bg-[radial-gradient(ellipse_at_top,rgba(26,115,232,0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(138,180,248,0.10),transparent_65%)]" />
                 <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-semibold text-primary">
-                        <FolderOpen className="h-3 w-3" /> Browse by Topic
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground">
+                        <FolderOpen className="h-3 w-3 text-[#1A73E8] dark:text-[#8AB4F8]" /> Browse by Topic
                     </div>
-                    <h1 className="text-5xl sm:text-6xl font-black tracking-tighter">
-                        All <span className="text-gradient-brand">Categories</span>
+                    <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-foreground">
+                        All Categories
                     </h1>
-                    <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                    <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
                         Explore {total} articles organized across {categories.length} curated topics.
                     </p>
                 </div>
