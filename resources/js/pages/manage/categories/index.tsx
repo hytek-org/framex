@@ -293,9 +293,9 @@ export default function CategoriesIndex({ categories }: { categories: any[] }) {
 
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <h1 className="text-2xl font-black tracking-tight flex items-center gap-2.5">
-                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                                        <Folder className="h-5 w-5 text-primary" />
+                                <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2.5">
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1A73E8]/10 text-[#1A73E8] dark:bg-[#8AB4F8]/15 dark:text-[#8AB4F8]">
+                                        <Folder className="h-5 w-5" />
                                     </span>
                                     Categories
                                 </h1>
@@ -305,12 +305,12 @@ export default function CategoriesIndex({ categories }: { categories: any[] }) {
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                                <Button variant="outline" size="sm" asChild>
+                                <Button variant="outline" size="sm" className="rounded-full" asChild>
                                     <Link href={`${tp}/manage/tags`}>
                                         <Hash className="mr-1.5 h-3.5 w-3.5" /> Tags
                                     </Link>
                                 </Button>
-                                <Button size="sm" onClick={() => { setCreating(true); setEditSlug(null); }}>
+                                <Button size="sm" className="rounded-full bg-[#1A73E8] text-white hover:bg-[#1557B0] dark:bg-[#8AB4F8] dark:text-[#041E49]" onClick={() => { setCreating(true); setEditSlug(null); }}>
                                     <Plus className="mr-1.5 h-3.5 w-3.5" /> New Category
                                 </Button>
                             </div>
@@ -319,12 +319,12 @@ export default function CategoriesIndex({ categories }: { categories: any[] }) {
                         {/* Stats strip */}
                         <div className="mt-5 flex gap-6 border-t pt-4">
                             <div className="text-center">
-                                <p className="text-2xl font-black tabular-nums">{categories.length}</p>
+                                <p className="text-2xl font-semibold tabular-nums">{categories.length}</p>
                                 <p className="text-xs text-muted-foreground">Categories</p>
                             </div>
                             <div className="w-px bg-border" />
                             <div className="text-center">
-                                <p className="text-2xl font-black tabular-nums">{totalPosts}</p>
+                                <p className="text-2xl font-semibold tabular-nums">{totalPosts}</p>
                                 <p className="text-xs text-muted-foreground">Categorized Posts</p>
                             </div>
                         </div>

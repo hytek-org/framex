@@ -1,0 +1,304 @@
+/*
+ * Editorial styles for sanitized CMS article HTML.
+ * The article body intentionally uses a text-optimized sans-serif stack;
+ * Google Sans Flex is reserved for display and interface typography.
+ */
+.blog-page {
+    font-family: 'Google Sans Flex', 'Roboto', 'Arial', sans-serif;
+    font-optical-sizing: auto;
+}
+
+.blog-page h1,
+.blog-page h2,
+.blog-page h3,
+.blog-page h4,
+.blog-page h5,
+.blog-page h6,
+.blog-page button,
+.blog-page [data-slot='badge'] {
+    font-family: 'Google Sans Flex', 'Roboto', 'Arial', sans-serif;
+    font-optical-sizing: auto;
+}
+
+.blog-rich-content {
+    color: hsl(var(--foreground));
+    font-family: 'Roboto', 'Arial', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1.82;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.blog-rich-content > :first-child {
+    margin-top: 0;
+}
+
+.blog-rich-content > :last-child {
+    margin-bottom: 0;
+}
+
+.blog-rich-content :where(p) {
+    margin: 1.35rem 0;
+    color: hsl(var(--foreground));
+    font-size: 1.0625rem;
+    line-height: 1.82;
+}
+
+.blog-rich-content :where(h1, h2, h3, h4, h5, h6) {
+    margin-top: 2.5em;
+    margin-bottom: 0.8em;
+    color: hsl(var(--foreground));
+    font-family: 'Google Sans Flex', 'Roboto', 'Arial', sans-serif;
+    font-weight: 560;
+    letter-spacing: -0.035em;
+    line-height: 1.22;
+    scroll-margin-top: 6rem;
+}
+
+.blog-rich-content :where(h1) {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    letter-spacing: -0.045em;
+}
+
+.blog-rich-content :where(h2) {
+    font-size: clamp(1.65rem, 3vw, 2rem);
+}
+
+.blog-rich-content :where(h3) {
+    font-size: clamp(1.35rem, 2.5vw, 1.55rem);
+}
+
+.blog-rich-content :where(h4) {
+    font-size: 1.2rem;
+}
+
+.blog-rich-content :where(h5, h6) {
+    font-size: 1.05rem;
+    letter-spacing: -0.015em;
+}
+
+.blog-rich-content :where(a) {
+    color: hsl(var(--primary));
+    font-weight: 500;
+    text-decoration-line: underline;
+    text-decoration-color: hsl(var(--primary) / 0.35);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 160ms ease;
+}
+
+.blog-rich-content :where(a:hover) {
+    text-decoration-color: currentColor;
+}
+
+.blog-rich-content :where(strong, b) {
+    color: hsl(var(--foreground));
+    font-weight: 650;
+}
+
+.blog-rich-content :where(ul, ol) {
+    margin: 1.25rem 0;
+    padding-left: 1.5rem;
+}
+
+.blog-rich-content :where(ul) {
+    list-style: disc;
+}
+
+.blog-rich-content :where(ol) {
+    list-style: decimal;
+}
+
+.blog-rich-content :where(li) {
+    margin: 0.45rem 0;
+    padding-left: 0.25rem;
+    line-height: 1.75;
+}
+
+.blog-rich-content :where(li)::marker {
+    color: hsl(var(--muted-foreground));
+}
+
+.blog-rich-content :where(blockquote) {
+    margin: 2rem 0;
+    padding: 1.1rem 1.35rem;
+    border-left: 3px solid hsl(var(--primary));
+    border-radius: 0 0.875rem 0.875rem 0;
+    background: hsl(var(--muted) / 0.58);
+    color: hsl(var(--foreground));
+}
+
+.blog-rich-content :where(blockquote > :first-child) {
+    margin-top: 0;
+}
+
+.blog-rich-content :where(blockquote > :last-child) {
+    margin-bottom: 0;
+}
+
+.blog-rich-content :where(figure) {
+    margin: 2.25rem 0;
+}
+
+.blog-rich-content :where(img) {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin: 2rem auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+}
+
+.blog-rich-content :where(figcaption) {
+    margin-top: -1.25rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.blog-rich-content :where(table) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 2.25rem 0;
+    overflow-x: auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.9rem;
+    border-spacing: 0;
+    border-collapse: separate;
+    background: hsl(var(--card));
+    font-size: 0.925rem;
+    line-height: 1.55;
+    -webkit-overflow-scrolling: touch;
+}
+
+.blog-rich-content :where(caption) {
+    padding: 0.9rem 1rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.blog-rich-content :where(th, td) {
+    min-width: 130px;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid hsl(var(--border));
+    text-align: left;
+    vertical-align: top;
+}
+
+.blog-rich-content :where(th) {
+    background: hsl(var(--muted) / 0.72);
+    color: hsl(var(--foreground));
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.015em;
+}
+
+.blog-rich-content :where(td) {
+    color: hsl(var(--foreground));
+}
+
+.blog-rich-content :where(tbody tr:nth-child(even) td) {
+    background: hsl(var(--muted) / 0.24);
+}
+
+.blog-rich-content :where(tr:last-child td) {
+    border-bottom: 0;
+}
+
+.blog-rich-content :where(pre) {
+    max-width: 100%;
+    margin: 1.75rem 0;
+    padding: 1.15rem 1.25rem;
+    overflow-x: auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.9rem;
+    background: hsl(var(--muted) / 0.62);
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    line-height: 1.7;
+    tab-size: 2;
+    -webkit-overflow-scrolling: touch;
+}
+
+.blog-rich-content :where(code, kbd, samp) {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+    font-size: 0.88em;
+}
+
+.blog-rich-content :where(p code, li code, td code) {
+    padding: 0.15em 0.38em;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.35rem;
+    background: hsl(var(--muted) / 0.72);
+    color: hsl(var(--foreground));
+    white-space: break-spaces;
+}
+
+.blog-rich-content :where(pre code) {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+    white-space: pre;
+}
+
+.blog-rich-content :where(hr) {
+    height: 1px;
+    margin: 2.75rem 0;
+    border: 0;
+    background: hsl(var(--border));
+}
+
+.blog-rich-content :where(mark) {
+    padding: 0.08em 0.2em;
+    border-radius: 0.2rem;
+    background: hsl(var(--primary) / 0.14);
+    color: hsl(var(--foreground));
+}
+
+.blog-rich-content :where(details) {
+    margin: 1.25rem 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.8rem;
+}
+
+.blog-rich-content :where(summary) {
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .blog-rich-content {
+        font-size: 1rem;
+        line-height: 1.78;
+    }
+
+    .blog-rich-content :where(p) {
+        font-size: 1rem;
+        line-height: 1.78;
+    }
+
+    .blog-rich-content :where(th, td) {
+        min-width: 115px;
+        padding: 0.7rem 0.8rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blog-page *,
+    .blog-page *::before,
+    .blog-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

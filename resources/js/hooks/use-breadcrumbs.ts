@@ -10,8 +10,11 @@ const routes: Record<string, BreadcrumbResolver> = {
     'activity/index': (props) => [
         { title: 'Activity', href: props.currentTeam ? `/${props.currentTeam.slug}/activity` : '#' },
     ],
-    'files/index': (props) => [
-        { title: 'Files', href: props.currentTeam ? `/${props.currentTeam.slug}/files` : '#' },
+    'drives/index': (props) => [
+        { title: 'Drive', href: props.currentTeam ? `/${props.currentTeam.slug}/drive` : '#' },
+    ],
+    'manage/content/index': (props) => [
+        { title: 'Content Studio', href: props.currentTeam ? `/${props.currentTeam.slug}/content` : '#' },
     ],
     'manage/blogs/index': (props) => [
         { title: 'Blogs', href: props.currentTeam ? `/${props.currentTeam.slug}/manage/blogs` : '#' },

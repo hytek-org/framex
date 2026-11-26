@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import './blog.css';
+@import './rich-text-editor.css';
 @plugin "@tailwindcss/typography";
 @import 'tw-animate-css';
 
@@ -222,7 +224,7 @@
 
     /* ── Glass & Bento Panels ─────────────────────────── */
     .glass-panel {
-        @apply rounded-[2.5rem] border border-black/5 bg-white/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-500 ease-[var(--ease-fluid)] dark:border-white/10 dark:bg-[#0A0A0A]/50 dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)];
+        @apply rounded-[2.5rem] border border-black/5 bg-white/70 shadow-[0_8px_30px_rgba(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-500 ease-fluid dark:border-white/10 dark:bg-[#0A0A0A]/50 dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)];
     }
 
     .glass-panel:hover {
@@ -230,7 +232,7 @@
     }
 
     .glass-panel-subtle {
-        @apply rounded-2xl border border-black/5 bg-zinc-50/50 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none;
+        @apply rounded-2xl border border-black/5 bg-zinc-50/50 shadow-sm backdrop-blur-xl dark:border-white/5 dark:bg-white/2 dark:shadow-none;
     }
 
     /* ── Surface Panels ───────────────────────────────── */
@@ -270,11 +272,11 @@
 
     /* ── Text Gradients ───────────────────────────────── */
     .text-gradient {
-        @apply bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-400 bg-clip-text text-transparent dark:from-white dark:via-white/90 dark:to-white/30;
+        @apply bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-400 bg-clip-text text-transparent dark:from-white dark:via-white/90 dark:to-white/30;
     }
 
     .text-gradient-brand {
-        @apply bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400;
+        @apply bg-linear-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400;
     }
 }
 

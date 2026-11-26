@@ -226,8 +226,18 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 >
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage
-                                            src={auth.user.avatar}
+                                            src={
+                                                auth.user.avatar
+                                                    ? auth.user.avatar.startsWith('http://') ||
+                                                      auth.user.avatar.startsWith('https://') ||
+                                                      auth.user.avatar.startsWith('data:') ||
+                                                      auth.user.avatar.startsWith('/')
+                                                        ? auth.user.avatar
+                                                        : `/storage/${auth.user.avatar}`
+                                                    : undefined
+                                            }
                                             alt={auth.user.name}
+                                            className="object-cover"
                                         />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(auth.user.name)}

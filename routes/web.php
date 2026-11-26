@@ -2,6 +2,7 @@
 
 use App\FrameX\Modules\Analytics\Controllers\AnalyticsTelemetryController;
 use App\FrameX\Modules\ContentStudio\Controllers\ContentStudioController;
+use App\FrameX\Modules\ContentStudio\Controllers\ContentTypeController;
 use App\FrameX\Modules\ContentStudio\Controllers\MediaController;
 use App\FrameX\Modules\ContentStudio\Controllers\SeoController;
 use App\FrameX\Modules\Forms\Controllers\FormManagementController;
@@ -141,9 +142,14 @@ Route::prefix('{current_team}')
         // ── FrameX Content Studio ─────────────────────────────────────────
         Route::prefix('content')->name('content.')->group(function () {
             Route::get('/', [ContentStudioController::class, 'index'])->name('index');
+            Route::get('/types', [ContentTypeController::class, 'index'])->name('types.index');
+            Route::post('/types', [ContentTypeController::class, 'store'])->name('types.store');
+            Route::put('/types/{contentType:slug}', [ContentTypeController::class, 'update'])->name('types.update');
+            Route::delete('/types/{contentType:slug}', [ContentTypeController::class, 'destroy'])->name('types.destroy');
             Route::get('/create', [ContentStudioController::class, 'create'])->name('create');
             Route::post('/', [ContentStudioController::class, 'store'])->name('store');
             Route::post('/bulk-action', [ContentStudioController::class, 'bulkAction'])->name('bulk-action');
+            Route::get('/{content:slug}', [ContentStudioController::class, 'show'])->name('show');
             Route::get('/{content:slug}/edit', [ContentStudioController::class, 'edit'])->name('edit');
             Route::put('/{content:slug}', [ContentStudioController::class, 'update'])->name('update');
             Route::delete('/{content:slug}', [ContentStudioController::class, 'destroy'])->name('destroy');

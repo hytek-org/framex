@@ -48,7 +48,7 @@ function TagPill({
                 </code>
             </div>
 
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                 <Link
                     href={`/blogs?tag=${tag.slug}`}
                     target="_blank"
@@ -231,12 +231,12 @@ export default function TagsIndex({ tags }: { tags: any[] }) {
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                                <Button variant="outline" size="sm" asChild>
+                                <Button variant="outline" size="sm" className="rounded-full" asChild>
                                     <Link href={`${tp}/manage/categories`}>
                                         <FolderOpen className="mr-1.5 h-3.5 w-3.5" /> Categories
                                     </Link>
                                 </Button>
-                                <Button size="sm" onClick={() => { setCreating(true); setEditSlug(null); }}>
+                                <Button size="sm" className="rounded-full bg-[#1A73E8] text-white hover:bg-[#1557B0] dark:bg-[#8AB4F8] dark:text-[#041E49]" onClick={() => { setCreating(true); setEditSlug(null); }}>
                                     <Plus className="mr-1.5 h-3.5 w-3.5" /> New Tag
                                 </Button>
                             </div>
@@ -245,12 +245,12 @@ export default function TagsIndex({ tags }: { tags: any[] }) {
                         {/* Stats strip */}
                         <div className="mt-5 flex gap-6 border-t pt-4">
                             <div className="text-center">
-                                <p className="text-2xl font-black tabular-nums">{tags.length}</p>
+                                <p className="text-2xl font-semibold tabular-nums">{tags.length}</p>
                                 <p className="text-xs text-muted-foreground">Total Tags</p>
                             </div>
                             <div className="w-px bg-border" />
                             <div className="text-center">
-                                <p className="text-2xl font-black tabular-nums">{totalPosts}</p>
+                                <p className="text-2xl font-semibold tabular-nums">{totalPosts}</p>
                                 <p className="text-xs text-muted-foreground">Tagged Posts</p>
                             </div>
                         </div>

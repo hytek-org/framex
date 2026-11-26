@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -51,8 +52,7 @@ class ContentStudioController extends Controller
         $team = $this->getTeam($request);
 
         $query = Content::where('team_id', $team->id)
-            ->with(['contentType', 'category', 'tags', 'author'])
-            ->latest();
+            ->with(['contentType', 'category', 'tags', 'author']);
 
         if ($request->filled('type')) {
             $query->ofType($request->input('type'));
@@ -62,21 +62,53 @@ class ContentStudioController extends Controller
             $query->where('status', $request->input('status'));
         }
 
+        if ($request->filled('category')) {
+            $query->whereHas('category', fn ($q) => $q->where('slug', $request->input('category')));
+        }
+
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('excerpt', 'like', "%{$search}%");
+                    ->orWhere('excerpt', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%");
             });
         }
 
+        $allowedSorts = ['title', 'status', 'updated_at', 'published_at', 'created_at'];
+        $sort = in_array($request->input('sort'), $allowedSorts, true)
+            ? $request->input('sort')
+            : 'updated_at';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sort, $direction);
+
         $contents = $query->paginate(15)->withQueryString();
         $contentTypes = ContentType::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get(['id', 'name', 'slug', 'color']);
+
+        $rawCounts = Content::where('team_id', $team->id)
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $statusCounts = [
+            'all' => $rawCounts->sum(),
+            'draft' => (int) ($rawCounts[ContentStatus::Draft->value] ?? 0),
+            'in_review' => (int) ($rawCounts[ContentStatus::InReview->value] ?? 0),
+            'published' => (int) ($rawCounts[ContentStatus::Published->value] ?? 0),
+            'archived' => (int) ($rawCounts[ContentStatus::Archived->value] ?? 0),
+        ];
 
         return Inertia::render('manage/content/index', [
             'contents' => $contents,
             'contentTypes' => $contentTypes,
-            'filters' => $request->only(['type', 'status', 'search']),
+            'categories' => $categories,
+            'statusCounts' => $statusCounts,
+            'filters' => [
+                ...$request->only(['type', 'status', 'category', 'search']),
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
         ]);
     }
 
@@ -126,51 +158,75 @@ class ContentStudioController extends Controller
             ? ContentStatus::tryFrom($validated['status']) ?? ContentStatus::Draft
             : ContentStatus::Draft;
 
-        $content = Content::create([
-            'content_type_id' => $validated['content_type_id'],
-            'team_id' => $team->id,
-            'author_id' => $user->id,
-            'category_id' => $validated['category_id'] ?? null,
-            'title' => $validated['title'],
-            'slug' => $slug,
-            'excerpt' => $validated['excerpt'] ?? null,
-            'status' => $status,
-            'cover_image' => $validated['cover_image'] ?? null,
-            'published_at' => $status === ContentStatus::Published ? now() : null,
-        ]);
-
-        // Create initial snapshot revision
-        $this->revisionService->createSnapshot(
-            content: $content,
-            data: [
-                'title' => $content->title,
-                'excerpt' => $content->excerpt,
-                'body_html' => $validated['body_html'] ?? null,
-                'body_json' => $validated['body_json'] ?? null,
-                'change_summary' => 'Initial content creation',
-            ],
-            author: $user
-        );
-
-        // Sync tags
-        if (! empty($validated['tag_ids'])) {
-            $content->tags()->sync($validated['tag_ids']);
-        }
-
-        // Save SEO Metadata if provided
-        if (! empty($validated['meta_title']) || ! empty($validated['meta_description']) || ! empty($validated['canonical_url'])) {
-            SeoMetadata::create([
+        DB::transaction(function () use ($team, $user, $validated, $slug, $status): void {
+            $content = Content::create([
+                'content_type_id' => $validated['content_type_id'],
                 'team_id' => $team->id,
-                'seoble_type' => Content::class,
-                'seoble_id' => $content->id,
-                'meta_title' => $validated['meta_title'] ?? null,
-                'meta_description' => $validated['meta_description'] ?? null,
-                'canonical_url' => $validated['canonical_url'] ?? null,
+                'author_id' => $user->id,
+                'category_id' => $validated['category_id'] ?? null,
+                'title' => $validated['title'],
+                'slug' => $slug,
+                'excerpt' => $validated['excerpt'] ?? null,
+                'status' => $status,
+                'cover_image' => $validated['cover_image'] ?? null,
+                'published_at' => $status === ContentStatus::Published ? now() : null,
             ]);
-        }
+
+            // Create initial snapshot revision
+            $this->revisionService->createSnapshot(
+                content: $content,
+                data: [
+                    'title' => $content->title,
+                    'excerpt' => $content->excerpt,
+                    'body_html' => $validated['body_html'] ?? null,
+                    'body_json' => $validated['body_json'] ?? null,
+                    'change_summary' => 'Initial content creation',
+                ],
+                author: $user
+            );
+
+            // Sync tags
+            if (! empty($validated['tag_ids'])) {
+                $content->tags()->sync($validated['tag_ids']);
+            }
+
+            // Save SEO Metadata if provided
+            if (! empty($validated['meta_title']) || ! empty($validated['meta_description']) || ! empty($validated['canonical_url'])) {
+                SeoMetadata::create([
+                    'team_id' => $team->id,
+                    'seoble_type' => Content::class,
+                    'seoble_id' => $content->id,
+                    'meta_title' => $validated['meta_title'] ?? null,
+                    'meta_description' => $validated['meta_description'] ?? null,
+                    'canonical_url' => $validated['canonical_url'] ?? null,
+                ]);
+            }
+        });
 
         return redirect()->route('content.index', ['current_team' => $team->slug])
             ->with('success', 'Content item created successfully.');
+    }
+
+    /**
+     * Show preview screen for a content item.
+     */
+    public function show(Request $request, string $current_team, Content $content): Response
+    {
+        $team = $this->getTeam($request);
+        abort_unless($content->team_id === $team->id, 403);
+
+        $content->load([
+            'contentType',
+            'category',
+            'tags',
+            'author:id,name,email',
+            'currentRevision',
+            'seoMetadata',
+        ]);
+
+        return Inertia::render('manage/content/show', [
+            'content' => $content,
+        ]);
     }
 
     /**
@@ -223,44 +279,46 @@ class ContentStudioController extends Controller
             'canonical_url' => 'nullable|string|max:2048',
         ]);
 
-        $content->update([
-            'title' => $validated['title'],
-            'excerpt' => $validated['excerpt'] ?? null,
-            'category_id' => $validated['category_id'] ?? null,
-            'cover_image' => $validated['cover_image'] ?? null,
-        ]);
+        DB::transaction(function () use ($team, $user, $content, $validated): void {
+            $content->update([
+                'title' => $validated['title'],
+                'excerpt' => $validated['excerpt'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
+                'cover_image' => $validated['cover_image'] ?? null,
+            ]);
 
-        if (! empty($validated['slug'])) {
-            $content->update(['slug' => Str::slug($validated['slug'])]);
-        }
+            if (! empty($validated['slug'])) {
+                $content->update(['slug' => Str::slug($validated['slug'])]);
+            }
 
-        // Snapshot revision
-        $this->revisionService->createSnapshot(
-            content: $content,
-            data: [
-                'title' => $content->title,
-                'excerpt' => $content->excerpt,
-                'body_html' => $validated['body_html'] ?? null,
-                'body_json' => $validated['body_json'] ?? null,
-                'change_summary' => $validated['change_summary'] ?? 'Updated content',
-            ],
-            author: $user
-        );
+            // Snapshot revision
+            $this->revisionService->createSnapshot(
+                content: $content,
+                data: [
+                    'title' => $content->title,
+                    'excerpt' => $content->excerpt,
+                    'body_html' => $validated['body_html'] ?? null,
+                    'body_json' => $validated['body_json'] ?? null,
+                    'change_summary' => $validated['change_summary'] ?? 'Updated content',
+                ],
+                author: $user
+            );
 
-        if (isset($validated['tag_ids'])) {
-            $content->tags()->sync($validated['tag_ids']);
-        }
+            if (isset($validated['tag_ids'])) {
+                $content->tags()->sync($validated['tag_ids']);
+            }
 
-        // SEO update
-        SeoMetadata::updateOrCreate(
-            ['seoble_type' => Content::class, 'seoble_id' => $content->id],
-            [
-                'team_id' => $team->id,
-                'meta_title' => $validated['meta_title'] ?? null,
-                'meta_description' => $validated['meta_description'] ?? null,
-                'canonical_url' => $validated['canonical_url'] ?? null,
-            ]
-        );
+            // SEO update
+            SeoMetadata::updateOrCreate(
+                ['seoble_type' => Content::class, 'seoble_id' => $content->id],
+                [
+                    'team_id' => $team->id,
+                    'meta_title' => $validated['meta_title'] ?? null,
+                    'meta_description' => $validated['meta_description'] ?? null,
+                    'canonical_url' => $validated['canonical_url'] ?? null,
+                ]
+            );
+        });
 
         return back()->with('success', 'Content updated and revision saved.');
     }
@@ -354,7 +412,16 @@ class ContentStudioController extends Controller
         ]);
 
         $targetStatus = ContentStatus::from($validated['status']);
-        $this->workflowService->transitionTo($content, $targetStatus, $user);
+
+        try {
+            $this->workflowService->transitionTo($content, $targetStatus, $user);
+        } catch (\InvalidArgumentException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
 
         if ($request->wantsJson()) {
             return response()->json([

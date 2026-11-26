@@ -1173,11 +1173,3 @@ function Pagination({
 }
 
 
-DriveIndex.layout = {
-    breadcrumbs: [
-        {
-            title: 'Drive',
-            href: '#',
-        },
-    ],
-};
