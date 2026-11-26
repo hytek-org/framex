@@ -611,7 +611,7 @@ print(response.json())`;
                                                             {log.method}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="text-foreground py-3">/api/v1/{log.endpoint}</TableCell>
+                                                    <TableCell className="text-foreground py-3">{log.endpoint}</TableCell>
                                                     <TableCell className="py-3">
                                                         <span className={`inline-flex items-center gap-1 font-bold ${log.response_code >= 200 && log.response_code < 300 ? 'text-emerald-500' :
                                                                 log.response_code >= 400 ? 'text-rose-500' : 'text-amber-500'
