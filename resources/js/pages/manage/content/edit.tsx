@@ -32,7 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MediaPickerModal } from '@/components/content-editor/MediaPickerModal';
 import { RevisionHistoryModal } from '@/components/content-editor/RevisionHistoryModal';
 import { SeoPanel } from '@/components/content-editor/SeoPanel';
-import { StudioEditor } from '@/components/content-editor/StudioEditor';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
 interface ContentTypeItem {
     id: number;
@@ -333,7 +333,7 @@ export default function Edit({ content, contentTypes, categories, tags }: Props)
                                     <Badge variant="secondary" className="font-normal">Editor</Badge>
                                 </div>
                                 <div className="p-2 sm:p-4">
-                                    <StudioEditor
+                                    <RichTextEditor
                                         content={data.body_html}
                                         onChange={(html, json) => {
                                             setData((previous) => ({
@@ -344,6 +344,11 @@ export default function Edit({ content, contentTypes, categories, tags }: Props)
                                         }}
                                         error={errors.body_html}
                                     />
+                                    {errors.body_json && (
+                                        <p className="mt-2 text-xs text-destructive" role="alert">
+                                            {errors.body_json}
+                                        </p>
+                                    )}
                                 </div>
                             </section>
 
