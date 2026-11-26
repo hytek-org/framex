@@ -164,7 +164,7 @@ export default function BlogShow({ blog, related = [] }: BlogShowProps) {
                             variant="ghost"
                             size="sm"
                             asChild
-                            className="mb-10 -ml-3 rounded-full px-3 text-muted-foreground hover:text-foreground"
+                            className="mb-10 -ml-3 mt-12 rounded-full px-3 text-muted-foreground hover:text-foreground"
                         >
                             <Link href="/blogs">
                                 <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />

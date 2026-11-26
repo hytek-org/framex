@@ -27,7 +27,7 @@ class BlogController extends Controller
             $query->whereHas('tags', fn ($q) => $q->where('slug', $request->tag));
         }
 
-        $blogs = $query->paginate(1)->withQueryString();
+        $blogs = $query->paginate(12)->withQueryString();
         $categories = Category::query()->withCount(['blogs' => fn ($q) => $q->where('is_published', true)])->get();
         $tags = Tag::query()->withCount(['blogs' => fn ($q) => $q->where('is_published', true)])->get();
 

@@ -2,6 +2,7 @@
 
 namespace App\FrameX\Modules\Forms\Models;
 
+use App\Concerns\LogsActivity;
 use App\Models\Team;
 use Database\Factories\FormFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Form extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function logActivityEvent(string $action): string
+    {
+        return "form.{$action}";
+    }
+
+    public function logActivityDescription(string $action): string
+    {
+        return match ($action) {
+            'created' => "Created form '{$this->name}'",
+            'updated' => "Updated form '{$this->name}'",
+            'deleted' => "Deleted form '{$this->name}'",
+            default => "Form '{$this->name}' {$action}",
+        };
+    }
 
     protected static function newFactory(): FormFactory
     {

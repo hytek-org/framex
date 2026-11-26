@@ -4,13 +4,10 @@ namespace App\Models;
 
 use App\Concerns\LogsActivity;
 use App\FrameX\Modules\ContentStudio\Models\Content;
-use App\Observers\BlogObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[ObservedBy([BlogObserver::class])]
 class Blog extends Model
 {
     use HasFactory, LogsActivity;

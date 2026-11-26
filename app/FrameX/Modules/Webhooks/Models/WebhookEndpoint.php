@@ -2,6 +2,7 @@
 
 namespace App\FrameX\Modules\Webhooks\Models;
 
+use App\Concerns\LogsActivity;
 use App\Models\Team;
 use Database\Factories\WebhookEndpointFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,24 @@ use Illuminate\Support\Str;
 
 class WebhookEndpoint extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function logActivityEvent(string $action): string
+    {
+        return "webhook.{$action}";
+    }
+
+    public function logActivityDescription(string $action): string
+    {
+        $label = $this->name ?: $this->url;
+
+        return match ($action) {
+            'created' => "Registered webhook endpoint '{$label}'",
+            'updated' => "Updated webhook endpoint '{$label}'",
+            'deleted' => "Removed webhook endpoint '{$label}'",
+            default => "Webhook endpoint '{$label}' {$action}",
+        };
+    }
 
     protected static function newFactory(): WebhookEndpointFactory
     {

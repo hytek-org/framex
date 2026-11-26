@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\MockBillingService;
+use App\Services\WorkspaceActivityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -131,6 +132,13 @@ class BillingController extends Controller
 
         if (MockBillingService::isMockMode()) {
             MockBillingService::mockSubscribe($user, $normalizedPlan);
+            WorkspaceActivityService::record(
+                $user->current_team_id,
+                $user,
+                'billing.subscription.created',
+                'Subscribed to '.ucfirst($normalizedPlan).' plan',
+                ['plan' => ucfirst($normalizedPlan), 'mode' => 'demo'],
+            );
 
             return redirect()->route('billing.index', ['checkout' => 'success']);
         }
@@ -182,6 +190,13 @@ class BillingController extends Controller
 
         if (MockBillingService::isMockMode()) {
             MockBillingService::mockCancel($user);
+            WorkspaceActivityService::record(
+                $user->current_team_id,
+                $user,
+                'billing.subscription.cancelled',
+                'Cancelled subscription',
+                ['mode' => 'demo'],
+            );
 
             return back();
         }
@@ -210,6 +225,13 @@ class BillingController extends Controller
 
         if (MockBillingService::isMockMode()) {
             MockBillingService::mockResume($user);
+            WorkspaceActivityService::record(
+                $user->current_team_id,
+                $user,
+                'billing.subscription.resumed',
+                'Resumed subscription',
+                ['mode' => 'demo'],
+            );
 
             return back();
         }
@@ -239,6 +261,13 @@ class BillingController extends Controller
 
         if (MockBillingService::isMockMode()) {
             MockBillingService::mockSwap($user, $normalizedPlan);
+            WorkspaceActivityService::record(
+                $user->current_team_id,
+                $user,
+                'billing.subscription.updated',
+                'Changed subscription plan to '.ucfirst($normalizedPlan),
+                ['plan' => ucfirst($normalizedPlan), 'mode' => 'demo'],
+            );
 
             return back();
         }

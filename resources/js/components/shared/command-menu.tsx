@@ -17,7 +17,7 @@ import {
     Users,
     Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import {
     CommandDialog,
     CommandEmpty,
@@ -43,7 +43,11 @@ interface SearchResults {
     quickActions?: any[];
 }
 
+let primaryCommandMenuId: string | null = null;
+
 export function CommandMenu() {
+    const instanceId = useId();
+    const [isPrimary, setIsPrimary] = useState(false);
     const [open, setOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -63,15 +67,35 @@ export function CommandMenu() {
     const { auth, currentTeam, teams } = props;
     const { appearance, updateAppearance } = useAppearance();
 
-    if (!auth?.user) return null;
-
     const dashboardUrl = currentTeam ? toUrl(dashboard(currentTeam.slug)) : "/";
+
+    // Ensure only a single mounted CommandMenu instance handles global shortcuts & renders
+    useEffect(() => {
+        if (primaryCommandMenuId === null) {
+            primaryCommandMenuId = instanceId;
+            setIsPrimary(true);
+        }
+
+        return () => {
+            if (primaryCommandMenuId === instanceId) {
+                primaryCommandMenuId = null;
+            }
+        };
+    }, [instanceId]);
 
     // Toggle shortcut (Cmd+K / Ctrl+K)
     useEffect(() => {
+        if (!isPrimary || !auth?.user) {
+            return;
+        }
+
         const down = (e: KeyboardEvent) => {
-            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+            if (e.repeat) {
+                return;
+            }
+            if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
+                e.stopImmediatePropagation();
                 setOpen((prev) => !prev);
             }
         };
@@ -86,7 +110,7 @@ export function CommandMenu() {
             document.removeEventListener("keydown", down);
             window.removeEventListener("toggle-command-menu", handleToggle);
         };
-    }, []);
+    }, [isPrimary, auth?.user]);
 
     // Debounce searchQuery
     useEffect(() => {
@@ -166,6 +190,10 @@ export function CommandMenu() {
         results.tags.length > 0 ||
         results.members.length > 0 ||
         (results.quickActions?.length ?? 0) > 0;
+
+    if (!auth?.user || !isPrimary) {
+        return null;
+    }
 
     return (
         <CommandDialog open={open} onOpenChange={setOpen}>
